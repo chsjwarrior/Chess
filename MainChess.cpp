@@ -35,8 +35,8 @@ private:
 		FillRect(30, 100, BOARD_SIZE - 5, 100, olc::DARK_BLUE);
 		DrawRect(30, 100, BOARD_SIZE - 5, 100, olc::YELLOW);
 		DrawString(40, 110, "Please, choice your color to play");
-		DrawPartialDecal({ 50,130 }, pieces, { float(pieces::KING * CELL_SIZE.x + (pieces::WHITE * CELL_SIZE.y * 6)), 0 }, CELL_SIZE);
-		DrawPartialDecal({ 160,130 }, pieces, { float(pieces::KING * CELL_SIZE.x + (pieces::BLACK * CELL_SIZE.y * 6)), 0 }, CELL_SIZE);
+		DrawPartialDecal({ 50,130 }, pieces, { float(Piece::KING * CELL_SIZE.x + (Piece::WHITE * CELL_SIZE.y * 6)), 0 }, CELL_SIZE);
+		DrawPartialDecal({ 160,130 }, pieces, { float(Piece::KING * CELL_SIZE.x + (Piece::BLACK * CELL_SIZE.y * 6)), 0 }, CELL_SIZE);
 
 		olc::vu2d mouse;
 		mouse.x = GetMouseX();
@@ -157,7 +157,7 @@ public:
 			pos.invert();
 			point.x = positionToPoint(pos.getFile());
 			point.y = positionToPoint(pos.getRank());
-			DrawPartialDecal(point, pieces, { float(it->second.NAME * CELL_SIZE.x + (it->second.COLOR * CELL_SIZE.y * 6)),0 }, CELL_SIZE);
+			DrawPartialDecal(point, pieces, { float(it->second.name * CELL_SIZE.x + (it->second.color * CELL_SIZE.y * 6)),0 }, CELL_SIZE);
 		}
 
 		if (bitBoard.attacks != 0)
@@ -172,7 +172,7 @@ public:
 			}
 
 		if (movePiece.has_value()) {
-			DrawPartialDecal(movePiece->first, pieces, { float(movePiece->second.NAME * CELL_SIZE.x + (movePiece->second.COLOR * CELL_SIZE.y * 6)),0 }, CELL_SIZE);
+			DrawPartialDecal(movePiece->first, pieces, { float(movePiece->second.name * CELL_SIZE.x + (movePiece->second.color * CELL_SIZE.y * 6)),0 }, CELL_SIZE);
 
 			float deltaX = float(lastMove->second.x) - movePiece->first.x;
 			float deltaY = float(lastMove->second.y) - movePiece->first.y;
@@ -207,7 +207,7 @@ public:
 						auto it = board.find(pos);
 						if (it != board.cend()) {
 							MoveGenerator moveGenerator;
-							moveGenerator.generateValidMoves(bitBoard, it->second.NAME, it->second.COLOR, pos);
+							moveGenerator.generateValidMoves(bitBoard, it->second.name, it->second.color, pos);
 							if (bitBoard.attacks != 0) {
 								selected.emplace(pos);
 								selected->invert();

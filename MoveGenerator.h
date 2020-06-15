@@ -55,22 +55,22 @@ private:
 	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, const Position& position) const {
 		uint64_t attacks = 0;
 		switch (namePiece) {
-		case pieces::PAWN:
+		case Piece::PAWN:
 			attacks = pawn::getMoves(bitBoard, colorPiece, position);
 			break;
-		case pieces::KNIGHT:
+		case Piece::KNIGHT:
 			attacks = knight::getMoves(bitBoard, position);
 			break;
-		case pieces::BISHOP:
+		case Piece::BISHOP:
 			attacks = bishop::getMoves(bitBoard, position);
 			break;
-		case pieces::ROOK:
+		case Piece::ROOK:
 			attacks = rook::getMoves(bitBoard, position);
 			break;
-		case pieces::QUEEN:
+		case Piece::QUEEN:
 			attacks = bishop::getMoves(bitBoard, position) | rook::getMoves(bitBoard, position);
 			break;
-		case pieces::KING:
+		case Piece::KING:
 			attacks = king::getMoves(bitBoard, position);
 			break;
 		}
@@ -88,7 +88,7 @@ private:
 			MoveMaker moveMaker(origin, destiny);
 			moveMaker.makeMove(clone);
 
-			generateAttacks(clone, pieces::otherColor(colorPiece), false);
+			generateAttacks(clone, otherColor(colorPiece), false);
 			if (bitBoardOperations::isKingCheck(clone, colorPiece))
 				attacks = bitBoardOperations::unsetIntersections(attacks, bitBoardOperations::getBitmapFromSquare(destiny.getSquare()));
 		}
@@ -96,8 +96,8 @@ private:
 
 	//tenta fazer o movimento roque
 	void tryToMakeCastle(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, uint64_t& attacks) const {
-		if (namePiece == pieces::KING) {
-			generateAttacks(bitBoard, pieces::otherColor(colorPiece), false);
+		if (namePiece == Piece::KING) {
+			generateAttacks(bitBoard, otherColor(colorPiece), false);
 			if (canMakeSmallCastle(bitBoard, colorPiece))
 				attacks = bitBoardOperations::getUnion(attacks, bitBoard.bitMaps[namePiece][colorPiece] << 2);
 			if (canMakeBigCastle(bitBoard, colorPiece))
@@ -122,6 +122,12 @@ private:
 				if (king::isPathBigRookClear(bitBoard, color))
 					return !bitBoardOperations::isKingCheck(bitBoard, color);
 		return false;
+	}
+
+	Piece::COLOR otherColor(const uint8_t& color) const {
+		if (color == Piece::BLACK)
+			return Piece::WHITE;
+		return Piece::BLACK;
 	}
 };
 #endif // MOVEGENERATOR_H_INCLUDED

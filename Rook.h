@@ -20,13 +20,13 @@ namespace rook {
 	}
 
 	const bool wasSmallRookMoved(const BitBoard& bitBoard, const uint8_t& colorRook) {
-		if (colorRook == pieces::WHITE)
+		if (colorRook == Piece::COLOR::WHITE)
 			return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(7));
 		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(63));
 	}
 
 	const bool wasBigRookMoved(const BitBoard& bitBoard, const uint8_t& colorRook) {
-		if (colorRook == pieces::WHITE)
+		if (colorRook == Piece::COLOR::WHITE)
 			return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(0));
 		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(56));
 	}

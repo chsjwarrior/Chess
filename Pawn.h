@@ -58,7 +58,7 @@ namespace pawn {
 		const uint64_t bitmapPawn = bitBoardOperations::getBitmapFromSquare(posPawn.getSquare());
 		uint64_t moves;
 
-		if (colorPawn == pieces::WHITE)
+		if (colorPawn == Piece::COLOR::WHITE)
 			moves = whitePawn(bitBoard, bitBoard.allPieces(), bitmapPawn);
 		else
 			moves = blackPawn(bitBoard, bitBoard.allPieces(), bitmapPawn);
