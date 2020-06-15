@@ -5,6 +5,12 @@
 #include "BitBoardOperations.h"
 #include "MoveGenerator.h"
 
+/*
+A chess game implemented using bitboard techniques I already implemented something like this in java and now I want to implement it in C++ which is lighter and faster than java.
+
+The graphical interface of the project is made using the OLC: PixelGameEngine: https://github.com/OneLoneCoder/olcPixelGameEngine
+*/
+
 class Chess : public olc::PixelGameEngine {
 private:
 	const olc::vu2d CELL_SIZE = { 55, 55 };
