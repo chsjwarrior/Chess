@@ -90,7 +90,7 @@ private:
 	}
 
 public:
-	MoveMaker(const Position& origin, const Position& destiny) : origin(origin), destiny(destiny) {
+	explicit MoveMaker(const Position& origin, const Position& destiny) : origin(origin), destiny(destiny) {
 		capture = std::nullopt;
 		enPassantCapture = false;
 		pawnPromotion = enPassantCapture;

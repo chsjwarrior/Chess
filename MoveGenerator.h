@@ -10,12 +10,12 @@
 class MoveGenerator {
 public:
 
-	bool hasPossibleMoves(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, Position& position) {
+	const bool hasPossibleMoves(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, Position& position) {
 		bitBoard.attacks = getValidMoves(bitBoard, namePiece, colorPiece, position);
 		return bitBoard.attacks != 0;
 	}
 
-	bool hasPossibleMoves(BitBoard bitBoard, const uint8_t& color) {
+	const bool hasPossibleMoves(BitBoard bitBoard, const uint8_t& color) {
 		generateAttacks(bitBoard, color, true);
 		return bitBoard.attacks != 0;
 	}
@@ -55,24 +55,24 @@ private:
 	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, const Position& position) const {
 		uint64_t attacks = 0;
 		switch (namePiece) {
-		case Piece::PAWN:
-			attacks = pawn::getMoves(bitBoard, colorPiece, position);
-			break;
-		case Piece::KNIGHT:
-			attacks = knight::getMoves(bitBoard, position);
-			break;
-		case Piece::BISHOP:
-			attacks = bishop::getMoves(bitBoard, position);
-			break;
-		case Piece::ROOK:
-			attacks = rook::getMoves(bitBoard, position);
-			break;
-		case Piece::QUEEN:
-			attacks = bishop::getMoves(bitBoard, position) | rook::getMoves(bitBoard, position);
-			break;
-		case Piece::KING:
-			attacks = king::getMoves(bitBoard, position);
-			break;
+			case Piece::PAWN:
+				attacks = pawn::getMoves(bitBoard, colorPiece, position);
+				break;
+			case Piece::KNIGHT:
+				attacks = knight::getMoves(bitBoard, position);
+				break;
+			case Piece::BISHOP:
+				attacks = bishop::getMoves(bitBoard, position);
+				break;
+			case Piece::ROOK:
+				attacks = rook::getMoves(bitBoard, position);
+				break;
+			case Piece::QUEEN:
+				attacks = bishop::getMoves(bitBoard, position) | rook::getMoves(bitBoard, position);
+				break;
+			case Piece::KING:
+				attacks = king::getMoves(bitBoard, position);
+				break;
 		}
 		return bitBoardOperations::unsetIntersections(attacks, bitBoard.allPiecesColor(colorPiece));
 	}

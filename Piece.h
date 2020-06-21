@@ -35,6 +35,7 @@ struct Piece {
 	~Piece() {
 		std::cout << "destroyed: " << *this;
 	}
+	Piece& operator=(Piece&) = delete;
 
 	friend std::ostringstream& operator<<(std::ostringstream& os, const Piece& piece);
 	friend std::ostream& operator<<(std::ostream& os, const Piece& piece);

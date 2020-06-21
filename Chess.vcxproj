@@ -148,12 +148,16 @@
     <ClInclude Include="Bishop.h" />
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="BitBoardOperations.h" />
+    <ClInclude Include="Board.h" />
     <ClInclude Include="Evaluator.h" />
     <ClInclude Include="King.h" />
     <ClInclude Include="Knight.h" />
+    <ClInclude Include="MenuManager.h" />
     <ClInclude Include="MoveGenerator.h" />
     <ClInclude Include="MoveMaker.h" />
+    <ClInclude Include="OLCBehavior.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
+    <ClInclude Include="GUIComponent.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="Position.h" />

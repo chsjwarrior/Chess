@@ -8,16 +8,15 @@
  */
 class Position {
 private:
-	const uint8_t fileMask = 0xF0;
-	const uint8_t rankMask = 0xF;
+	const uint8_t FILE_MASK = 0xF0;
+	const uint8_t RANK_MASK = 0xF;
 	uint8_t position;
 
-public:	
+public:
 	Position() {
 		position = 0;
 	}
 
-	
 	explicit Position(const uint8_t& file, const uint8_t& rank) {
 		position = 0;
 		setFile(file);
@@ -29,13 +28,13 @@ public:
 	}
 
 	const uint8_t getRank() const {
-		return rankMask & position;
+		return RANK_MASK & position;
 	}
 
 	void setRank(uint8_t rank) {
 		if (rank > 7)
 			rank = 7;
-		position = fileMask & position | rank;
+		position = FILE_MASK & position | rank;
 	}
 
 	const uint8_t getFile() const {
@@ -45,7 +44,7 @@ public:
 	void setFile(uint8_t file) {
 		if (file > 7)
 			file = 7;
-		position = rankMask & position | (file << 4);
+		position = RANK_MASK & position | (file << 4);
 	}
 
 	const uint8_t getSquare() const {
@@ -78,8 +77,7 @@ public:
 	}
 
 	const std::string toString() {
-		char character[3] = { char(getFile() + 97), char(getRank() + 49), '\0' };
-		return character;
+		return {char(getFile() + 97), char(getRank() + 49), '\0'};
 	}
 
 	friend std::ostringstream& operator<<(std::ostringstream& os, const Position& pos);
