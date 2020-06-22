@@ -8,5 +8,5 @@ public:
 
 	virtual bool OnUserCreate(olc::PixelGameEngine& olc) = 0;
 
-	virtual bool OnUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime) = 0;
+	virtual bool OnUserUpdate(olc::PixelGameEngine& olc, float elapsedTime) = 0;
 };

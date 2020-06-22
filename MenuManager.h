@@ -4,40 +4,102 @@
 
 class MenuManager : OLCBehavior {
 private:
-	gui::Table mainMenu, choiceDificult, exiting;
-	gui::Table& current = mainMenu;
+	const uint8_t scale = 2;
+
+	uint8_t stack = 0;
+	float timer = 0;
+
+	gui::Label mainTitle, dificultTitle, colorTitle, exitingTitle;
+	gui::Button playBtn, exitBtn;
+	gui::Button oneBtn, twoBtn, threBtn;
+	gui::Button whiteBtn, blackBtn;
+	gui::Button yesBtn, noBtn;
 
 public:
 	MenuManager() {}
 	~MenuManager() {}
 
 	bool OnUserCreate(olc::PixelGameEngine& olc) override {
-		choiceDificult.getTitle().setText("Choice the dificult:");
-		choiceDificult.setAmountVisibleCells(5, 1);
-		choiceDificult.addButton("1");
-		choiceDificult.addButton("2");
-		choiceDificult.addButton("3");
-		choiceDificult.addButton("4");
-		choiceDificult.addButton("5");
+		mainTitle.setText("Chess");
+		mainTitle.setScale(scale);
+		playBtn.setText("play");
+		playBtn.setScale(scale);
+		exitBtn.setText("exit");
+		exitBtn.setScale(scale);
 
-		exiting.getTitle().setText("Do you really want exit?");
-		exiting.setAmountVisibleCells(1, 2);
-		exiting.addButton("yes");
-		exiting.addButton("no");
-		
-		mainMenu.getTitle().setText("Chess");
-		mainMenu.setAmountVisibleCells(2, 1);
-		mainMenu.addButton("play");
-		mainMenu.addButton("exit");
+		dificultTitle.setText("Choice the dificult:");
+		dificultTitle.setScale(scale);
+		oneBtn.setText("1");
+		oneBtn.setScale(scale);
+		twoBtn.setText("2");
+		twoBtn.setScale(scale);
+		threBtn.setText("3");
+		threBtn.setScale(scale);
 
-		mainMenu.onUserCreate(olc);
+		colorTitle.setText("Choice your color:");
+		colorTitle.setScale(scale);
+		whiteBtn.setText("Brancas");
+		whiteBtn.setScale(scale);
+		blackBtn.setText("Negras");
+		blackBtn.setScale(scale);
+
+		exitingTitle.setText("Do you realy want to exit?");
+		exitingTitle.setScale(2);
+		yesBtn.setText("yes");
+		yesBtn.setScale(2);
+		noBtn.setText("no");
+		noBtn.setScale(2);
 
 		return true;
 	}
 
-	bool OnUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime) override {
+	bool OnUserUpdate(olc::PixelGameEngine& olc, float elapsedTime) override {
+		timer += elapsedTime;
 
-		current.onUserUpdate(olc, fElapsedTime, {200,200});
+		if (stack == 0) {
+			mainTitle.onUserUpdate(olc, elapsedTime, {205, 200});
+			playBtn.onUserUpdate(olc, elapsedTime, {210, 220});
+			exitBtn.onUserUpdate(olc, elapsedTime, {210, 245});
+
+			if (timer >= 1) {
+				timer = 0;
+				if (playBtn.isMousePressed())
+					stack = 1;
+				else if (exitBtn.isMousePressed())
+					stack = 3;
+			}
+
+		} else if (stack == 1) {
+			dificultTitle.onUserUpdate(olc, elapsedTime, {60, 200});
+			oneBtn.onUserUpdate(olc, elapsedTime, {210, 220});
+			twoBtn.onUserUpdate(olc, elapsedTime, {210, 245});
+			threBtn.onUserUpdate(olc, elapsedTime, {210,270});
+
+			if (timer >= 1) {
+				timer = 0;
+				if (oneBtn.isMousePressed() || twoBtn.isMousePressed() || threBtn.isMousePressed())
+					stack = 2;
+			}
+
+		} else if (stack == 2) {
+			colorTitle.onUserUpdate(olc, elapsedTime, {60, 200});
+			whiteBtn.onUserUpdate(olc, elapsedTime, {210, 220});
+			blackBtn.onUserUpdate(olc, elapsedTime, {210, 245});
+		} else if (stack == 3) {
+			exitingTitle.onUserUpdate(olc, elapsedTime, {60, 200});
+			yesBtn.onUserUpdate(olc, elapsedTime, {195, 220});
+			noBtn.onUserUpdate(olc, elapsedTime, {255, 220});
+
+			if (timer >= 1) {
+				timer = 0;
+				if (noBtn.isMousePressed())
+					stack = 0;
+			}
+		}
+
+		if (olc.GetKey(olc::ESCAPE).bPressed)
+			if (stack != 0)
+				stack = 0;
 
 		return true;
 	}

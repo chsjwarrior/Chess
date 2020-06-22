@@ -61,13 +61,13 @@ public:
 		pieces = new olc::Decal(new olc::Sprite("PiecesSprite.png"));
 
 		bitBoardOperations::setInitialPosition(bitBoard);
-
+		/*
 		for (uint8_t i = 0; i < 64; i++) {
 			Position pos(i);
 			auto piece = bitBoardOperations::getPieceFromSquare(bitBoard, pos.getSquare());
 			if (piece.has_value())
 				board.emplace(pos, *piece);
-		}
+		}*/
 
 		boardLayer = olc.CreateLayer();
 		olc.SetDrawTarget(boardLayer);
@@ -103,7 +103,7 @@ public:
 		return true;
 	}
 
-	bool OnUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime) override {
+	bool OnUserUpdate(olc::PixelGameEngine& olc, float elapsedTime) override {
 		
 		olc::vu2d point;
 		if (selected.has_value()) {

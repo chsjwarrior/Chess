@@ -5,51 +5,32 @@ namespace gui {
 
 	constexpr uint8_t PIXEL = 8;
 
-	class Component;
-
-	struct MouseListener {
-		virtual void onMousePressed(olc::PixelGameEngine& olc, Component& source) = 0;
-		virtual void onMouseReleased(olc::PixelGameEngine& olc, Component& source) = 0;
-	};
-
 	class Component {
-	protected:
-
-		MouseListener* mouseListener;
-
 	public:
 		Component(Component&) = delete;
 		Component& operator=(Component&) = delete;
-		Component() {
-			mouseListener = nullptr;
-		}
+		Component() {}
 		virtual ~Component() {}
 
-		virtual void onUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime, const olc::vi2d& screenOffset) = 0;
+		virtual void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) = 0;
 
 		virtual const int32_t getWidth() const = 0;
 
 		virtual const int32_t getHeight() const = 0;
-
-		void addMouseListener(MouseListener* mouseListener) {
-			this->mouseListener = mouseListener;
-		}
 	};
 
 	class Label : public Component {
-	private:
-		uint8_t scale;
-		olc::Pixel textColor;
+	protected:
+		uint8_t scale = 1;
+		olc::Pixel textColor = olc::BLACK;
 		std::string text;
 
 	public:
-		Label() = delete;
-		explicit Label(const std::string& text) : Component(), text(text) {
-			scale = 1;
-		}
-		~Label() {}
+		Label() : Component(), text("label") {}
+		explicit Label(const std::string& text, const uint8_t& scale = 1) : Component(), text(text), scale(scale) {}
+		virtual ~Label() {}
 
-		void onUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime, const olc::vi2d& screenOffset) override {
+		virtual void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
 			olc.DrawString(screenOffset.x, screenOffset.y, text, textColor, scale);
 		}
 
@@ -77,31 +58,29 @@ namespace gui {
 	class Button : public Label {
 	private:
 		const uint8_t PADDING = 2;
-		olc::Pixel backgroudColor;
-		olc::Pixel highLightColor;
+		olc::Pixel backgroundColor = olc::GREY;
+		olc::Pixel highLightColor = olc::WHITE;
+		bool mousePressed = false;
+		bool mouseReleased = false;
 
 	public:
-		Button() = delete;
-		explicit Button(std::string text) : Label(text) {
-			backgroudColor = olc::GREY;
-			highLightColor = olc::WHITE;
-		}
+		Button() : Label("button") {}
+		explicit Button(const std::string& text, const uint8_t& scale = 1) : Label(text, scale) {}
 		~Button() {}
 
-		void onUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime, const olc::vi2d& screenOffset) override {
+		void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
 			olc::vi2d temp(screenOffset.x + getWidth(), screenOffset.y + getHeight());
 			olc::vi2d point(olc.GetMouseX(), olc.GetMouseY());
 
-			olc::Pixel color = backgroudColor;
+			olc::Pixel color = backgroundColor;
 
 			//mouseListener
 			if ((point.x >= screenOffset.x && point.y >= screenOffset.y) &&
 				(point.x <= temp.x && point.y <= temp.y)) {
 				color = highLightColor;
 
-				if (mouseListener != nullptr)
-					if (olc.GetMouse(0).bPressed)
-						mouseListener->onMousePressed(olc, *this);
+				mousePressed = (olc.GetMouse(0).bPressed || olc.GetMouse(1).bPressed || olc.GetMouse(2).bPressed);
+				mouseReleased = (olc.GetMouse(0).bReleased || olc.GetMouse(1).bReleased || olc.GetMouse(2).bReleased);
 			}
 			//-------------------------
 
@@ -113,7 +92,7 @@ namespace gui {
 			temp.x = screenOffset.x + PADDING;
 			temp.y = screenOffset.y + PADDING;
 
-			Label::onUserUpdate(olc, fElapsedTime, temp);
+			Label::onUserUpdate(olc, elapsedTime, temp);
 		}
 
 		const int32_t getWidth() const override {
@@ -125,69 +104,60 @@ namespace gui {
 		}
 
 		void setBackgroundColor(olc::Pixel& color) {
-			backgroudColor = color;
+			backgroundColor = color;
 		}
 
 		void setHighLightColor(olc::Pixel& color) {
 			highLightColor = color;
 		}
+
+		const bool& isMousePressed() { return mousePressed; }
+		const bool& isMouseReleased() { return mouseReleased; }
 	};
+
+	/*
+	this class is probably temporary.
+	I will want to implement a container class with layout manager.
 
 	class Table : public Component {
 	private:
-		int16_t amountRows = 1, amountColumns = 1, cellWidth = 1, cellHeight = 1;
-		int32_t width = 5, height = 5;
+		mutable int16_t cellWidth = 1, cellHeight = 1;
+		int16_t amountRows = 1, amountColumns = 1;
 		olc::Pixel backgroudColor;
 		Label title;
-		std::list<Button> buttons;
+		std::list<Button*> items;
 
 	public:
-		Table() : Component(), title("Table") {
+		Table() : Component(), title("Table", 2) {
 			title.setTextColor(olc::WHITE);
 		}
-		explicit Table(const std::string& title) : Component(), title(title) {
+		explicit Table(const std::string& title) : Component(), title(title, 2) {
 			this->title.setTextColor(olc::WHITE);
 		}
 		~Table() {
-			buttons.clear();
+			items.clear();
 		}
 
-		void onUserCreate(olc::PixelGameEngine& olc) {
-			title.setScale(2);
-
-			// Longest child name determines cell width
-
-			cellWidth = title.getWidth();
-			cellHeight = title.getHeight();
-
-			for (auto btn = buttons.begin(); btn != buttons.end(); ++btn) {
-				cellWidth = max(btn->getWidth(), cellWidth);
-				cellHeight = max(btn->getHeight(), cellHeight);
-			}
-
-			width = amountColumns * cellWidth;
-			height = (amountRows + 1) * cellHeight;
-		}
-
-		void onUserUpdate(olc::PixelGameEngine& olc, const float& fElapsedTime, const olc::vi2d& screenOffset) override {
-			olc::vi2d temp(width, height);
+		void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
+			olc::vi2d temp(getWidth(), getHeight());
 
 			olc.FillRect(screenOffset, temp, backgroudColor);
 
-			//padding			
+			//padding
 			temp.x = screenOffset.x + 1;
 			temp.y = screenOffset.y + 1;
-			title.onUserUpdate(olc, fElapsedTime, temp);
+			title.onUserUpdate(olc, elapsedTime, temp);
 
-			auto btn = buttons.begin();
+			auto item = items.begin();
 			for (uint8_t x = 0; x < amountColumns; x++) {
 				for (uint8_t y = 1; y < amountRows + 1; y++) {
 
 					temp.x = screenOffset.x + (x * cellWidth);
 					temp.y = screenOffset.y + (y * cellHeight);
-					if (btn != buttons.end()) {
-						btn->onUserUpdate(olc, fElapsedTime, temp);
-						btn++;
+					if (item != items.end()) {
+						(*item)->onUserUpdate(olc, elapsedTime, temp);
+						//item->onUserUpdate(olc, elapsedTime, temp);
+						item++;
 					}
 
 				}
@@ -195,20 +165,33 @@ namespace gui {
 		}
 
 		const int32_t getWidth() const override {
-			return width;
+			cellWidth = title.getWidth();
+
+			for (auto item = items.begin(); item != items.end(); ++item)
+				cellWidth = max((*item)->getWidth(), cellWidth);
+
+			return amountColumns * cellWidth;
 		}
 
 		const int32_t getHeight() const override {
-			return height;
+			cellHeight = title.getHeight();
+
+			for (auto item = items.begin(); item != items.end(); ++item)
+				cellHeight = max((*item)->getHeight(), cellHeight);
+
+			return (amountRows + 1) * cellHeight;
 		}
 
 		Label& getTitle() {
 			return title;
-		}	
+		}
 
-		void addButton(const std::string& label) {
-			buttons.emplace_back(label);
-			buttons.back().setScale(1);
+		void addItem(const Button* item) {
+			items.push_back(item);
+		}
+
+		void removeAllItems() {
+			items.clear();
 		}
 
 		void setBackgroundColor(olc::Pixel& color) {
@@ -220,4 +203,5 @@ namespace gui {
 			amountColumns = columns;
 		}
 	};
+	*/
 }
