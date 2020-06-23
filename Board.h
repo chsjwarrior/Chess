@@ -39,7 +39,7 @@ private:
 	}
 
 public:
-	Board() {		
+	Board() {
 		boardLayer = 0;
 		whiteTime = false;
 		checkMate = true;
@@ -88,8 +88,8 @@ public:
 			olc.DrawString(x, BOARD_SIZE + BORDER_SIZE + 9, value, olc::YELLOW);
 		}
 
-		std::unique_ptr<olc::Sprite> whiteSquare = std::make_unique<olc::Sprite>("WhiteSquare.png");
-		std::unique_ptr<olc::Sprite> blackSquare = std::make_unique<olc::Sprite>("BlackSquare.png");
+		std::unique_ptr<olc::Sprite> whiteSquare(new olc::Sprite("WhiteSquare.png"));
+		std::unique_ptr<olc::Sprite> blackSquare(new olc::Sprite("BlackSquare.png"));
 		for (uint8_t x = 0; x < 8; x++)
 			for (uint8_t y = 0; y < 8; y++)
 				if ((x % 2 == 0) == (y % 2 == 0))
@@ -104,7 +104,7 @@ public:
 	}
 
 	bool OnUserUpdate(olc::PixelGameEngine& olc, float elapsedTime) override {
-		
+
 		olc::vu2d point;
 		if (selected.has_value()) {
 			point.x = positionToPoint(selected->getFile());
@@ -180,11 +180,11 @@ public:
 					if (!selected.has_value()) {
 						auto it = board.find(pos);
 						if (it != board.cend()) {
-								MoveGenerator moveGenerator;
-								if (moveGenerator.hasPossibleMoves(bitBoard, it->second.name, it->second.color, pos)) {
-									selected.emplace(pos);
-									selected->invert();
-								}
+							MoveGenerator moveGenerator;
+							if (moveGenerator.hasPossibleMoves(bitBoard, it->second.name, it->second.color, pos)) {
+								selected.emplace(pos);
+								selected->invert();
+							}
 						}
 					} else if (bitBoardOperations::isSquareAttacked(bitBoard, pos.getSquare())) {
 						pos.invert();
@@ -204,7 +204,7 @@ public:
 					bitBoard.attacks = 0;
 				}
 			}
-		}		
+		}
 		return true;
 	}
 };

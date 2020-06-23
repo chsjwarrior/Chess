@@ -152,7 +152,6 @@
     <ClInclude Include="Evaluator.h" />
     <ClInclude Include="King.h" />
     <ClInclude Include="Knight.h" />
-    <ClInclude Include="MenuManager.h" />
     <ClInclude Include="MoveGenerator.h" />
     <ClInclude Include="MoveMaker.h" />
     <ClInclude Include="OLCBehavior.h" />

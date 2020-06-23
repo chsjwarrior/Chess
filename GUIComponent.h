@@ -9,7 +9,7 @@ namespace gui {
 	public:
 		Component(Component&) = delete;
 		Component& operator=(Component&) = delete;
-		Component() {}
+		Component() = default;
 		virtual ~Component() {}
 
 		virtual void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) = 0;
@@ -21,13 +21,13 @@ namespace gui {
 
 	class Label : public Component {
 	protected:
-		uint8_t scale = 1;
-		olc::Pixel textColor = olc::BLACK;
+		uint8_t scale;
+		olc::Pixel textColor;
 		std::string text;
 
 	public:
-		Label() : Component(), text("label") {}
-		explicit Label(const std::string& text, const uint8_t& scale = 1) : Component(), text(text), scale(scale) {}
+		Label() : Component(), text("label"), textColor(olc::BLACK), scale(1) {}
+		explicit Label(const std::string& text, olc::Pixel textColor = olc::BLACK, uint8_t scale = 1) : Component(), text(text), textColor(textColor), scale(scale) {}
 		virtual ~Label() {}
 
 		virtual void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
@@ -57,15 +57,15 @@ namespace gui {
 
 	class Button : public Label {
 	private:
-		const uint8_t PADDING = 2;
-		olc::Pixel backgroundColor = olc::GREY;
-		olc::Pixel highLightColor = olc::WHITE;
+		const uint8_t PADDING = 5;
 		bool mousePressed = false;
 		bool mouseReleased = false;
+		olc::Pixel backgroundColor = olc::GREY;
+		olc::Pixel highLightColor = olc::WHITE;
 
 	public:
 		Button() : Label("button") {}
-		explicit Button(const std::string& text, const uint8_t& scale = 1) : Label(text, scale) {}
+		explicit Button(const std::string& text, uint8_t scale = 1) : Label(text, olc::BLACK, scale) {}
 		~Button() {}
 
 		void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
@@ -74,15 +74,20 @@ namespace gui {
 
 			olc::Pixel color = backgroundColor;
 
-			//mouseListener
+			//=================mouseListener=================
 			if ((point.x >= screenOffset.x && point.y >= screenOffset.y) &&
 				(point.x <= temp.x && point.y <= temp.y)) {
+
 				color = highLightColor;
 
 				mousePressed = (olc.GetMouse(0).bPressed || olc.GetMouse(1).bPressed || olc.GetMouse(2).bPressed);
 				mouseReleased = (olc.GetMouse(0).bReleased || olc.GetMouse(1).bReleased || olc.GetMouse(2).bReleased);
+
+			} else if (mousePressed || mouseReleased) {
+				mousePressed = false;
+				mouseReleased = mousePressed;
 			}
-			//-------------------------
+			//=================mouseListener=================
 
 			temp.x = getWidth();
 			temp.y = getHeight();
@@ -103,105 +108,112 @@ namespace gui {
 			return Label::getHeight() + PADDING + PADDING;
 		}
 
-		void setBackgroundColor(olc::Pixel& color) {
+		void setBackgroundColor(olc::Pixel color) {
 			backgroundColor = color;
 		}
 
-		void setHighLightColor(olc::Pixel& color) {
+		void setHighLightColor(olc::Pixel color) {
 			highLightColor = color;
 		}
 
-		const bool& isMousePressed() { return mousePressed; }
-		const bool& isMouseReleased() { return mouseReleased; }
+		const bool isMousePressed() const {
+			return mousePressed;
+		}
+
+		const bool isMouseReleased() const {
+			return mouseReleased;
+		}
 	};
 
 	/*
 	this class is probably temporary.
-	I will want to implement a container class with layout manager.
-
+	I want to implement a container class with layout manager.
+	*/
 	class Table : public Component {
 	private:
+		const uint8_t TITLE_PADDING = 10, TABLE_PADDING = 3;
 		mutable int16_t cellWidth = 1, cellHeight = 1;
 		int16_t amountRows = 1, amountColumns = 1;
 		olc::Pixel backgroudColor;
 		Label title;
-		std::list<Button*> items;
+
+		const int32_t getTitleWidth() const {
+			return title.getWidth() + TITLE_PADDING + TITLE_PADDING;
+		}
+
+		const int32_t getTitleHeight() const {
+			return title.getHeight() + TITLE_PADDING + TITLE_PADDING;
+		}
 
 	public:
-		Table() : Component(), title("Table", 2) {
-			title.setTextColor(olc::WHITE);
-		}
-		explicit Table(const std::string& title) : Component(), title(title, 2) {
-			this->title.setTextColor(olc::WHITE);
-		}
-		~Table() {
-			items.clear();
-		}
+		Table() : Component(), backgroudColor(olc::DARK_GREY), title("Table", olc::BLACK) {}
+		explicit Table(const std::string& title, olc::Pixel backgroudColor = olc::DARK_GREY) : Component(), backgroudColor(backgroudColor), title(title, olc::BLACK) {}
+		~Table() {}
+
+		std::list<Component*> items;
 
 		void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
 			olc::vi2d temp(getWidth(), getHeight());
 
 			olc.FillRect(screenOffset, temp, backgroudColor);
 
-			//padding
-			temp.x = screenOffset.x + 1;
-			temp.y = screenOffset.y + 1;
+			temp.x = screenOffset.x + TITLE_PADDING;
+			temp.y = screenOffset.y + TITLE_PADDING;
 			title.onUserUpdate(olc, elapsedTime, temp);
 
-			auto item = items.begin();
-			for (uint8_t x = 0; x < amountColumns; x++) {
-				for (uint8_t y = 1; y < amountRows + 1; y++) {
+			if (items.empty())
+				return;
 
-					temp.x = screenOffset.x + (x * cellWidth);
-					temp.y = screenOffset.y + (y * cellHeight);
-					if (item != items.end()) {
-						(*item)->onUserUpdate(olc, elapsedTime, temp);
-						//item->onUserUpdate(olc, elapsedTime, temp);
-						item++;
-					}
+			int16_t column = 0, row = 0;
+			for (auto item = items.begin(); item != items.end(); ++item) {
+				temp.x = column * cellWidth + (screenOffset.x + TABLE_PADDING);
+				temp.y = row * cellHeight + (screenOffset.y + getTitleHeight());
 
+				(*item)->onUserUpdate(olc, elapsedTime, temp);
+
+				if (++column == amountColumns) {
+					column = 0;
+					if (++row == amountRows)
+						row = 0;
 				}
 			}
 		}
 
 		const int32_t getWidth() const override {
-			cellWidth = title.getWidth();
+			if (items.empty())
+				return getTitleWidth();
 
+			cellWidth = TABLE_PADDING;
 			for (auto item = items.begin(); item != items.end(); ++item)
 				cellWidth = max((*item)->getWidth(), cellWidth);
 
-			return amountColumns * cellWidth;
+			cellWidth += TABLE_PADDING + TABLE_PADDING;
+			return max(amountColumns * cellWidth, getTitleWidth());
 		}
 
 		const int32_t getHeight() const override {
-			cellHeight = title.getHeight();
+			if (items.empty())
+				return getTitleHeight();
 
+			cellHeight = TABLE_PADDING;
 			for (auto item = items.begin(); item != items.end(); ++item)
 				cellHeight = max((*item)->getHeight(), cellHeight);
 
-			return (amountRows + 1) * cellHeight;
+			cellHeight += TABLE_PADDING + TABLE_PADDING;
+			return amountRows * cellHeight + getTitleHeight();
 		}
 
 		Label& getTitle() {
 			return title;
 		}
 
-		void addItem(const Button* item) {
-			items.push_back(item);
-		}
-
-		void removeAllItems() {
-			items.clear();
-		}
-
-		void setBackgroundColor(olc::Pixel& color) {
+		void setBackgroundColor(olc::Pixel color) {
 			backgroudColor = color;
 		}
 
-		void setAmountVisibleCells(const int8_t& rows, const int8_t& columns) {
+		void setTable(int8_t rows, int8_t columns) {
 			amountRows = rows;
 			amountColumns = columns;
 		}
 	};
-	*/
 }
