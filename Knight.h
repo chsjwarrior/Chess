@@ -1,5 +1,4 @@
-#ifndef KNIGHT_H_INCLUDED
-#define KNIGHT_H_INCLUDED
+#pragma once
 #include "BitBoard.h"
 #include "BitBoardOperations.h"
 
@@ -20,4 +19,3 @@ namespace knight {
 		return moves;
 	}
 }
-#endif // KNIGHT_H_INCLUDED

@@ -1,5 +1,4 @@
-#ifndef KING_H_INCLUDED
-#define KING_H_INCLUDED
+#pragma once
 #include "BitBoard.h"
 #include "BitBoardOperations.h"
 
@@ -22,13 +21,13 @@ namespace king {
 	}
 
 	const bool wasKingMoved(const BitBoard& bitBoard, const uint8_t& colorKing) {
-		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::INITIAL_POSITION[Piece::NAME::KING][colorKing]);
-	}	
+		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::INITIAL_POSITION[(uint8_t) Piece::NAME::KING][colorKing]);
+	}
 
 	/* Este método verifica se as casas do castelo do rei estão livres */
-	const bool isPathSmallRookClear(const BitBoard& bitBoard, const uint8_t& color) {
+	const bool isPathSmallRookClear(const BitBoard& bitBoard, const uint8_t color) {
 		const uint64_t allPieces = bitBoard.allPieces();
-		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[Piece::NAME::KING][color];
+		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t) Piece::NAME::KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap << 1))
 				if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 2))
@@ -37,9 +36,9 @@ namespace king {
 	}
 
 	/* Este método verifica se a as casas do castelo da dama estão livres */
-	const bool isPathBigRookClear(const BitBoard& bitBoard, const uint8_t& color) {
+	const bool isPathBigRookClear(const BitBoard& bitBoard, const uint8_t color) {
 		const uint64_t allPieces = bitBoard.allPieces();
-		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[Piece::NAME::KING][color];
+		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t) Piece::NAME::KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap >> 1))
 				if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 2))
@@ -48,4 +47,3 @@ namespace king {
 		return false;
 	}
 }
-#endif // KING_H_INCLUDED

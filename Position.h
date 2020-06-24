@@ -1,6 +1,5 @@
+#pragma once
 #include <sstream>
-#ifndef POSITION_H_INCLUDED
-#define POSITION_H_INCLUDED
 /*
  Esta classe representa as marcações do tabuleiro de xadrez.
  file = 'A','B','C','D','E','F','G','H'.
@@ -13,17 +12,14 @@ private:
 	uint8_t position;
 
 public:
-	Position() {
-		position = 0;
-	}
+	Position() : position(0) {}
 
-	explicit Position(const uint8_t& file, const uint8_t& rank) {
-		position = 0;
+	explicit Position(const uint8_t file, const uint8_t rank) {
 		setFile(file);
 		setRank(rank);
 	}
 
-	Position(const uint8_t& square) {
+	explicit Position(const uint8_t square) {
 		setSquare(square);
 	}
 
@@ -66,7 +62,7 @@ public:
 		setRank(7 - getRank());
 	}
 
-	const bool operator==(const Position& other) const {
+	const bool operator==(const Position& other) {
 		if (this != &other)
 			return position == other.position;
 		return true;
@@ -90,4 +86,3 @@ std::ostringstream& operator<<(std::ostringstream& os, const Position& pos) {
 	os << s;
 	return os;
 }
-#endif // POSITION_H_INCLUDED

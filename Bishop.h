@@ -1,5 +1,4 @@
-#ifndef BISHOP_H_INCLUDED
-#define BISHOP_H_INCLUDED
+#pragma once
 #include "BitBoard.h"
 #include "BitBoardOperations.h"
 
@@ -21,4 +20,3 @@ namespace bishop {
 		return ldMoves | dlMoves;
 	}
 }
-#endif // BISHOP_H_INCLUDED

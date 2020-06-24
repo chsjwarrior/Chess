@@ -3,11 +3,12 @@
 
 struct BitBoard {
 	const size_t bitMapsLength = 6;
-	uint64_t bitMaps[6][2] = { 0 };
+	uint64_t bitMaps[6][2] = {0};
 	uint64_t flags = 0;
 	uint64_t attacks = 0;
 
 	BitBoard() = default;
+	/*
 	BitBoard(const BitBoard& other) {
 		for (uint8_t namePiece = 0; namePiece < 6; namePiece++) {
 			bitMaps[namePiece][0] = other.bitMaps[namePiece][0];
@@ -16,6 +17,7 @@ struct BitBoard {
 		flags = other.flags;
 		attacks = 0;
 	}
+	*/
 
 	const uint64_t allPiecesColor(uint8_t colorPiece) const {
 		if (colorPiece > 1)

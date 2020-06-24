@@ -1,5 +1,4 @@
-#ifndef MOVEGENERATOR_H_INCLUDED
-#define MOVEGENERATOR_H_INCLUDED
+#pragma once
 #include "Pawn.h"
 #include "Knight.h"
 #include "Bishop.h"
@@ -10,7 +9,7 @@
 class MoveGenerator {
 public:
 
-	const bool hasPossibleMoves(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, Position& position) {
+	const bool hasPossibleMoves(BitBoard& bitBoard, const uint8_t namePiece, const uint8_t colorPiece, Position& position) {
 		bitBoard.attacks = getValidMoves(bitBoard, namePiece, colorPiece, position);
 		return bitBoard.attacks != 0;
 	}
@@ -54,25 +53,25 @@ private:
 	//retorna um bitmap das casas alcançadas pela pela peça
 	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, const Position& position) const {
 		uint64_t attacks = 0;
-		switch (namePiece) {
-			case Piece::PAWN:
+		Piece::NAME p = (Piece::NAME)namePiece;
+		switch (p) {
+			case Piece::NAME::PAWN:
 				attacks = pawn::getMoves(bitBoard, colorPiece, position);
 				break;
-			case Piece::KNIGHT:
+			case Piece::NAME::KNIGHT:
 				attacks = knight::getMoves(bitBoard, position);
 				break;
-			case Piece::BISHOP:
+			case Piece::NAME::BISHOP:
 				attacks = bishop::getMoves(bitBoard, position);
 				break;
-			case Piece::ROOK:
+			case Piece::NAME::ROOK:
 				attacks = rook::getMoves(bitBoard, position);
 				break;
-			case Piece::QUEEN:
+			case Piece::NAME::QUEEN:
 				attacks = bishop::getMoves(bitBoard, position) | rook::getMoves(bitBoard, position);
 				break;
-			case Piece::KING:
+			case Piece::NAME::KING:
 				attacks = king::getMoves(bitBoard, position);
-				break;
 		}
 		return bitBoardOperations::unsetIntersections(attacks, bitBoard.allPiecesColor(colorPiece));
 	}
@@ -96,7 +95,7 @@ private:
 
 	//tenta fazer o movimento roque
 	void tryToMakeCastle(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, uint64_t& attacks) const {
-		if (namePiece == Piece::KING) {
+		if (namePiece == (uint8_t)Piece::NAME::KING) {
 			generateAttacks(bitBoard, otherColor(colorPiece), false);
 			if (canMakeSmallCastle(bitBoard, colorPiece))
 				attacks = bitBoardOperations::getUnion(attacks, bitBoard.bitMaps[namePiece][colorPiece] << 2);
@@ -124,10 +123,9 @@ private:
 		return false;
 	}
 
-	Piece::COLOR otherColor(const uint8_t& color) const {
-		if (color == Piece::BLACK)
-			return Piece::WHITE;
-		return Piece::BLACK;
+	uint8_t otherColor(const uint8_t& color) const {
+		if (color == 1)
+			return 0;
+		return 1;
 	}
 };
-#endif // MOVEGENERATOR_H_INCLUDED

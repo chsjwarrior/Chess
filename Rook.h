@@ -1,5 +1,4 @@
-#ifndef ROOK_H_INCLUDED
-#define ROOK_H_INCLUDED
+#pragma once
 #include "BitBoard.h"
 #include "BitBoardOperations.h"
 
@@ -19,16 +18,15 @@ namespace rook {
 		return hMoves | vMoves;
 	}
 
-	const bool wasSmallRookMoved(const BitBoard& bitBoard, const uint8_t& colorRook) {
-		if (colorRook == Piece::COLOR::WHITE)
+	const bool wasSmallRookMoved(const BitBoard& bitBoard, const uint8_t colorRook) {
+		if (colorRook == (uint8_t) Piece::COLOR::WHITE)
 			return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(7));
 		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(63));
 	}
 
-	const bool wasBigRookMoved(const BitBoard& bitBoard, const uint8_t& colorRook) {
-		if (colorRook == Piece::COLOR::WHITE)
+	const bool wasBigRookMoved(const BitBoard& bitBoard, const uint8_t colorRook) {
+		if (colorRook == (uint8_t) Piece::COLOR::WHITE)
 			return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(0));
 		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapFromSquare(56));
 	}
 }
-#endif // ROOK_H_INCLUDED

@@ -42,11 +42,11 @@ namespace bitBoardOperations {
 	/* seta os bitmaps das peças na posição inicial */
 	void setInitialPosition(BitBoard& bitBoard) {
 		for (uint8_t namePiece = 0; namePiece < 6; namePiece++) {
-			bitBoard.bitMaps[namePiece][Piece::COLOR::WHITE] = INITIAL_POSITION[namePiece][Piece::COLOR::WHITE];
-			bitBoard.bitMaps[namePiece][Piece::COLOR::BLACK] = INITIAL_POSITION[namePiece][Piece::COLOR::BLACK];
+			bitBoard.bitMaps[namePiece][0] = INITIAL_POSITION[namePiece][0];
+			bitBoard.bitMaps[namePiece][1] = INITIAL_POSITION[namePiece][1];
 		}
-		bitBoard.flags = bitBoard.bitMaps[Piece::NAME::KING][Piece::COLOR::WHITE] | bitBoard.bitMaps[Piece::NAME::KING][Piece::COLOR::BLACK] | bitBoard.bitMaps[Piece::NAME::ROOK][Piece::COLOR::WHITE]
-			| bitBoard.bitMaps[Piece::NAME::ROOK][Piece::COLOR::BLACK];
+		bitBoard.flags = bitBoard.bitMaps[(uint8_t) Piece::NAME::KING][0] | bitBoard.bitMaps[(uint8_t) Piece::NAME::KING][1] |
+			bitBoard.bitMaps[(uint8_t) Piece::NAME::ROOK][0] | bitBoard.bitMaps[(uint8_t) Piece::NAME::ROOK][1];
 		bitBoard.attacks = 0;
 	}
 
@@ -67,36 +67,36 @@ namespace bitBoardOperations {
 	}
 
 	/* retornar um bitmap com um bit aceso */
-	const uint64_t getBitmapFromSquare(const uint8_t& square) {
+	const uint64_t getBitmapFromSquare(const uint8_t square) {
 		uint64_t bitmap = 1;
 		return bitmap << square;
 	}
 
 	/* acende un bit no bitmap da peça */
-	void setPieceOnSquare(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, const uint8_t& square) {
+	void setPieceOnSquare(BitBoard& bitBoard, const uint8_t namePiece, const uint8_t colorPiece, const uint8_t square) {
 		bitBoard.bitMaps[namePiece][colorPiece] = getUnion(bitBoard.bitMaps[namePiece][colorPiece], getBitmapFromSquare(square));
 	}
 
 	/* apaga um bit no bitmap da peça */
-	void unsetPieceOnSquare(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorpiece, const uint8_t& square) {
+	void unsetPieceOnSquare(BitBoard& bitBoard, const uint8_t namePiece, const uint8_t colorpiece, const uint8_t square) {
 		bitBoard.bitMaps[namePiece][colorpiece] = unsetIntersections(bitBoard.bitMaps[namePiece][colorpiece], getBitmapFromSquare(square));
 	}
 
 	/* procura por um bit aceso em todos os bitmaps, se estiver aceso gera uma peça */
-	std::optional<Piece> getPieceFromSquare(const BitBoard& bitBoard, const uint8_t& square) {
+	std::optional<Piece> getPieceFromSquare(const BitBoard& bitBoard, const uint8_t square) {
 		uint64_t bitmap = getBitmapFromSquare(square);
 
 		for (uint8_t namePiece = 0; namePiece < 6; namePiece++)
-			if (hasIntersection(bitBoard.bitMaps[namePiece][Piece::BLACK], bitmap))
-				return std::make_optional<Piece>((Piece::NAME)namePiece, Piece::BLACK);
-			else if (hasIntersection(bitBoard.bitMaps[namePiece][Piece::WHITE], bitmap))
-				return std::make_optional<Piece>((Piece::NAME)namePiece, Piece::WHITE);
+			if (hasIntersection(bitBoard.bitMaps[namePiece][0], bitmap))
+				return std::make_optional<Piece>((Piece::NAME)namePiece, Piece::COLOR::WHITE);
+			else if (hasIntersection(bitBoard.bitMaps[namePiece][1], bitmap))
+				return std::make_optional<Piece>((Piece::NAME)namePiece, Piece::COLOR::BLACK);
 
 		return std::nullopt;
 	}
 
 	/* retorna um int da posição a partir do primeiro bit aceso do bitmap */
-	const uint8_t getSquareFromBitmap(const uint64_t& bitmap) {
+	const uint8_t getSquareFromBitmap(const uint64_t bitmap) {
 		uint32_t x, y;
 		if (bitmap == 0) return 64;
 		uint32_t n = 63;
@@ -108,17 +108,16 @@ namespace bitBoardOperations {
 		return n - ((x << 1) >> 31);
 	}
 
-	const bool isSquareOccupied(const BitBoard& bitBoard, const Piece::COLOR& color, const uint8_t& square) {
+	const bool isSquareOccupied(const BitBoard& bitBoard, const Piece::COLOR colorPiece, const uint8_t square) {
 		uint64_t bitmap = getBitmapFromSquare(square);
 
 		for (uint8_t namePiece = 0; namePiece < 6; namePiece++)
-			if (hasIntersection(bitBoard.bitMaps[namePiece][color], bitmap))
+			if (hasIntersection(bitBoard.bitMaps[namePiece][(uint8_t) colorPiece], bitmap))
 				return true;
-
 		return false;
 	}
 
-	const bool isSquareAttacked(const BitBoard& bitBoard, const uint8_t& square) {
+	const bool isSquareAttacked(const BitBoard& bitBoard, const uint8_t square) {
 		return hasIntersection(bitBoard.attacks, getBitmapFromSquare(square));
 	}
 
@@ -145,7 +144,7 @@ namespace bitBoardOperations {
 		return bitmap & (bitmap - 1);
 	}
 
-	const bool isKingCheck(const BitBoard& bitBoard, const uint8_t& colorKing) {
-		return bitBoardOperations::hasIntersection(bitBoard.attacks, bitBoard.bitMaps[Piece::NAME::KING][colorKing]);
+	const bool isKingCheck(const BitBoard& bitBoard, const uint8_t colorKing) {
+		return bitBoardOperations::hasIntersection(bitBoard.attacks, bitBoard.bitMaps[(uint8_t) Piece::NAME::KING][colorKing]);
 	}
 };

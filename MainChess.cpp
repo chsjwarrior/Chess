@@ -77,7 +77,7 @@ public:
 		table.getTitle().setScale(MENU_SCALE);
 
 		currentState = GameState::MAIN_MENU;
-		lastState == currentState;
+		lastState = currentState;
 
 		buildTable();
 
@@ -113,10 +113,12 @@ public:
 			}
 		} else if (currentState == GameState::COLOR_CHOICE) {
 			if (btn1.isMousePressed()) {
+				board.startNewGame(Piece::COLOR::WHITE);
 				currentState = GameState::PLAYING;
 				lastState = GameState::PAUSED_MENU;
 				table.items.clear();
 			} else if (btn2.isMousePressed()) {
+				board.startNewGame(Piece::COLOR::BLACK);
 				currentState = GameState::PLAYING;
 				lastState = GameState::PAUSED_MENU;
 				table.items.clear();

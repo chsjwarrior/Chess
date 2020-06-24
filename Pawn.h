@@ -1,10 +1,9 @@
-#ifndef PAWN_H_INCLUDED
-#define PAWN_H_INCLUDED
+#pragma once
 #include "BitBoard.h"
 #include "BitBoardOperations.h"
 
 namespace pawn {
-	const uint64_t whitePawn(const BitBoard& bitBoard, const uint64_t& allPieces, const uint64_t& bitmapPawn) {
+	const uint64_t whitePawn(const BitBoard& bitBoard, const uint64_t allPieces, const uint64_t bitmapPawn) {
 		const uint64_t enPassant = bitBoardOperations::getIntersections(bitBoard.flags, bitBoardOperations::RANK_4);
 		uint64_t moves = 0;
 
@@ -29,7 +28,7 @@ namespace pawn {
 		return moves;
 	}
 
-	const uint64_t blackPawn(const BitBoard& bitBoard, const uint64_t& allPieces, const uint64_t& bitmapPawn) {
+	const uint64_t blackPawn(const BitBoard& bitBoard, const uint64_t allPieces, const uint64_t bitmapPawn) {
 		const uint64_t enPassant = bitBoardOperations::getIntersections(bitBoard.flags, bitBoardOperations::RANK_5);
 		uint64_t moves = 0;
 
@@ -54,11 +53,11 @@ namespace pawn {
 		return moves;
 	}
 
-	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t& colorPawn, const Position& posPawn) {
+	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t colorPawn, const Position& posPawn) {
 		const uint64_t bitmapPawn = bitBoardOperations::getBitmapFromSquare(posPawn.getSquare());
 		uint64_t moves;
 
-		if (colorPawn == Piece::COLOR::WHITE)
+		if (colorPawn == (uint8_t)Piece::COLOR::WHITE)
 			moves = whitePawn(bitBoard, bitBoard.allPieces(), bitmapPawn);
 		else
 			moves = blackPawn(bitBoard, bitBoard.allPieces(), bitmapPawn);
@@ -71,4 +70,3 @@ namespace pawn {
 		return moves;
 	}
 }
-#endif // PAWN_H_INCLUDED

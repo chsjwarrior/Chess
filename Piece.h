@@ -1,5 +1,4 @@
-#ifndef PIECE_H_INCLUDED
-#define PIECE_H_INCLUDED
+#pragma once
 
 /*
 namespace pieces {
@@ -14,16 +13,16 @@ namespace pieces {
 */
 
 struct Piece {
-	enum NAME : uint8_t {
+	enum class NAME : uint8_t {
 		PAWN = 0,
-		KNIGHT = 1,
-		BISHOP = 2,
-		ROOK = 3,
-		QUEEN = 4,
-		KING = 5,		
+		KNIGHT,
+		BISHOP,
+		ROOK,
+		QUEEN,
+		KING
 	};
 
-	enum COLOR : uint8_t { WHITE = 0, BLACK = 1 };
+	enum class COLOR : uint8_t { WHITE = 0, BLACK };
 
 	const NAME name;
 	const COLOR color;
@@ -31,7 +30,10 @@ struct Piece {
 	Piece() = delete;
 	explicit Piece(const Piece::NAME name, const Piece::COLOR color) : name(name), color(color) {
 		std::cout << "construted: " << *this;
-	}	
+	}
+	Piece(const Piece& other) : name(other.name), color(other.color) {
+		std::cout << "copy construted: " << *this;
+	}
 	~Piece() {
 		std::cout << "destroyed: " << *this;
 	}
@@ -49,22 +51,22 @@ std::ostringstream& operator<<(std::ostringstream& os, const Piece& piece) {
 
 	switch (piece.name) {
 		case Piece::NAME::PAWN:
-		os << "Pawn";
-		break;
-	case Piece::NAME::KNIGHT:
-		os << "Knight";
-		break;
-	case Piece::NAME::BISHOP:
-		os << "Bishop";
-		break;
-	case Piece::NAME::ROOK:
-		os << "Rook";
-		break;
-	case Piece::NAME::QUEEN:
-		os << "Queen";
-		break;
-	case Piece::NAME::KING:
-		os << "King";
+			os << "Pawn";
+			break;
+		case Piece::NAME::KNIGHT:
+			os << "Knight";
+			break;
+		case Piece::NAME::BISHOP:
+			os << "Bishop";
+			break;
+		case Piece::NAME::ROOK:
+			os << "Rook";
+			break;
+		case Piece::NAME::QUEEN:
+			os << "Queen";
+			break;
+		case Piece::NAME::KING:
+			os << "King";
 	}
 	return os;
 }
@@ -75,26 +77,24 @@ std::ostream& operator<<(std::ostream& os, const Piece& piece) {
 		os << "White ";
 
 	switch (piece.name) {
-	case Piece::NAME::PAWN:
-		os << "Pawn";
-		break;
-	case Piece::NAME::KNIGHT:
-		os << "Knight";
-		break;
-	case Piece::NAME::BISHOP:
-		os << "Bishop";
-		break;
-	case Piece::NAME::ROOK:
-		os << "Rook";
-		break;
-	case Piece::NAME::QUEEN:
-		os << "Queen";
-		break;
-	case Piece::NAME::KING:
-		os << "King";
+		case Piece::NAME::PAWN:
+			os << "Pawn";
+			break;
+		case Piece::NAME::KNIGHT:
+			os << "Knight";
+			break;
+		case Piece::NAME::BISHOP:
+			os << "Bishop";
+			break;
+		case Piece::NAME::ROOK:
+			os << "Rook";
+			break;
+		case Piece::NAME::QUEEN:
+			os << "Queen";
+			break;
+		case Piece::NAME::KING:
+			os << "King";
 	}
 	os << std::endl;
 	return os;
 }
-
-#endif //PIECE_H_INCLUDED

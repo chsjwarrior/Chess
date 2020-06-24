@@ -17,14 +17,14 @@ private:
 
 	olc::Decal* pieces;
 
+	BitBoard bitBoard;
+	std::map<Position, Piece, std::less<Position>> board;
+
 	std::optional<Position> selected;
 	std::optional<std::pair<olc::vu2d, olc::vu2d>> lastMove;
 	std::optional<std::pair<olc::vf2d, Piece>> movePiece;
 
-	BitBoard bitBoard;
-
-	std::map<Position, Piece, std::less<Position>> board;
-
+	//0======================================================================0	
 	inline const bool isMouseInsideBoard(const olc::vu2d& point) const {
 		return point.x >= BORDER_SIZE && point.x < BOARD_SIZE + BORDER_SIZE &&
 			point.y >= BORDER_SIZE && point.y < BOARD_SIZE + BORDER_SIZE;
@@ -38,36 +38,52 @@ private:
 		return value * CELL_SIZE.x + BORDER_SIZE;
 	}
 
+	inline const bool isColorTime(const Piece::COLOR& pieceColor) const {
+		return (whiteTime && pieceColor == Piece::COLOR::WHITE) || (!whiteTime && pieceColor == Piece::COLOR::BLACK);
+	}
+	//0======================================================================0
 public:
-	Board() {
+	Board() : boardLayer(0),
+		whiteTime(false),
+		checkMate(true),
+		pieces(nullptr),
+		selected(std::nullopt),
+		lastMove(std::nullopt),
+		movePiece(std::nullopt) {}
+	~Board() {
 		boardLayer = 0;
 		whiteTime = false;
-		checkMate = true;
-		pieces = nullptr;
-		selected = std::nullopt;
-		lastMove = std::nullopt;
-		movePiece = std::nullopt;
-	}
-	~Board() {
+		checkMate = whiteTime;
 		if (pieces != nullptr)
 			delete pieces;
+		pieces = nullptr;
 		selected.reset();
 		lastMove.reset();
 		movePiece.reset();
 		board.clear();
 	}
 
-	bool OnUserCreate(olc::PixelGameEngine& olc) override {
-		pieces = new olc::Decal(new olc::Sprite("PiecesSprite.png"));
-
+	void startNewGame(Piece::COLOR playerColor) {
 		bitBoardOperations::setInitialPosition(bitBoard);
-		/*
+
+		board.clear();
 		for (uint8_t i = 0; i < 64; i++) {
 			Position pos(i);
 			auto piece = bitBoardOperations::getPieceFromSquare(bitBoard, pos.getSquare());
 			if (piece.has_value())
-				board.emplace(pos, *piece);
-		}*/
+				board.emplace(pos, piece.value());
+		}
+
+		whiteTime = true;
+		checkMate = false;
+
+		selected = std::nullopt;
+		lastMove = std::nullopt;
+		movePiece = std::nullopt;
+	}
+
+	bool OnUserCreate(olc::PixelGameEngine& olc) override {
+		pieces = new olc::Decal(new olc::Sprite("PiecesSprite.png"));
 
 		boardLayer = olc.CreateLayer();
 		olc.SetDrawTarget(boardLayer);
@@ -104,7 +120,6 @@ public:
 	}
 
 	bool OnUserUpdate(olc::PixelGameEngine& olc, float elapsedTime) override {
-
 		olc::vu2d point;
 		if (selected.has_value()) {
 			point.x = positionToPoint(selected->getFile());
@@ -118,13 +133,13 @@ public:
 		}
 
 		Position pos;
-		for (auto it = board.cbegin(); it != board.cend(); it++) {
+		for (auto it = board.cbegin(); it != board.cend(); ++it) {
 			pos.setFile(it->first.getFile());
 			pos.setRank(it->first.getRank());
 			pos.invert();
 			point.x = positionToPoint(pos.getFile());
 			point.y = positionToPoint(pos.getRank());
-			olc.DrawPartialDecal(point, pieces, {float(it->second.name * CELL_SIZE.x + (it->second.color * CELL_SIZE.y * 6)),0}, CELL_SIZE);
+			olc.DrawPartialDecal(point, CELL_SIZE, pieces, {float(((uint8_t) it->second.name * CELL_SIZE.x) + ((uint8_t) it->second.color * CELL_SIZE.y * 6)) ,0}, CELL_SIZE);
 		}
 
 		if (bitBoard.attacks != 0)
@@ -139,7 +154,7 @@ public:
 			}
 
 		if (movePiece.has_value()) {
-			olc.DrawPartialDecal(movePiece->first, pieces, {float(movePiece->second.name * CELL_SIZE.x + (movePiece->second.color * CELL_SIZE.y * 6)),0}, CELL_SIZE);
+			olc.DrawPartialDecal(movePiece->first, CELL_SIZE, pieces, {float(((uint8_t) movePiece->second.name * CELL_SIZE.x) + ((uint8_t) movePiece->second.color * CELL_SIZE.y * 6)), 0}, CELL_SIZE);
 
 			float deltaX = float(lastMove->second.x) - movePiece->first.x;
 			float deltaY = float(lastMove->second.y) - movePiece->first.y;
@@ -149,18 +164,17 @@ public:
 			movePiece->first.y += deltaY / distance;
 
 			if (distance < 4) {
-
-
 				pos.setFile(pointToPosition(lastMove->second.x));
 				pos.setRank(pointToPosition(lastMove->second.y));
 				pos.invert();
 
+				if (board.count(pos) > 0)
+					board.erase(pos);					
 				board.emplace(pos, movePiece->second);
-
+				
 				movePiece.reset();
 
-				//MoveMaker moveMaker(Position(pointToPosition(lastMove->first.x), pointToPosition(lastMove->first.y)), pos);
-				//moveMaker.makeMove(bitBoard);
+				
 
 				std::cout << bitBoard;
 			}
@@ -176,12 +190,11 @@ public:
 
 				if (olc.GetMouse(0).bPressed) {
 					pos.invert();
-
 					if (!selected.has_value()) {
 						auto it = board.find(pos);
 						if (it != board.cend()) {
 							MoveGenerator moveGenerator;
-							if (moveGenerator.hasPossibleMoves(bitBoard, it->second.name, it->second.color, pos)) {
+							if (moveGenerator.hasPossibleMoves(bitBoard, (uint8_t) it->second.name, (uint8_t) it->second.color, pos)) {
 								selected.emplace(pos);
 								selected->invert();
 							}
@@ -195,6 +208,10 @@ public:
 						auto it = board.find(*selected);
 						movePiece.emplace(lastMove->first, it->second);
 						board.erase(it);
+
+						pos.invert();
+						MoveMaker moveMaker(*selected, pos);
+						moveMaker.makeMove(bitBoard);
 
 						selected.reset();
 						bitBoard.attacks = 0;
