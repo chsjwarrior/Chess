@@ -2,6 +2,7 @@
 #include "olcPixelGameEngine.h"
 #include "GUIComponent.h" 
 #include "Board.h"
+#include <stack>
 
 /*
 A chess game implemented using bitboard techniques I already implemented something like this in java and now I want to implement it in C++ which is lighter and faster than java.
@@ -11,58 +12,37 @@ The graphical interface of the project is made using the OLC: PixelGameEngine: h
 class GameManager : public olc::PixelGameEngine {
 private:
 	const uint8_t MENU_SCALE = 2;
-
-	enum class GameState {
+	enum class GAME_STATE {
 		MAIN_MENU,
 		PAUSED_MENU,
 		COLOR_CHOICE,
 		PLAYING,
 		EXITING
 	};
-	GameState currentState, lastState;
 
-	gui::Button btn1, btn2, btn3;
-	gui::Table table;
+	gui::MessageBox box;
 
 	Board board;
 
-	void buildTable() {
-		switch (currentState) {
-			case GameState::MAIN_MENU:
-				table.getTitle().setText("Chess");
-				table.setTable(2, 1);
-				btn2.setText("novo jogo");
-				btn3.setText("sair");
-				table.items.push_back(&btn2);
-				table.items.push_back(&btn3);
+	std::stack<GAME_STATE> stack;
+
+	void buildBoxMenu() {
+		switch (stack.top()) {
+			case GAME_STATE::MAIN_MENU:
+				box.getTitle().setText("Chess");
+				box.setButtonsGrid(2, 1);
 				break;
-			case GameState::PAUSED_MENU:
-				table.getTitle().setText("Paused");
-				table.setTable(3, 1);
-				btn1.setText("continue");
-				btn2.setText("novo jogo");
-				btn3.setText("exit");
-				table.items.push_back(&btn1);
-				table.items.push_back(&btn2);
-				table.items.push_back(&btn3);
+			case GAME_STATE::PAUSED_MENU:
+				box.getTitle().setText("Paused");
+				box.setButtonsGrid(3, 1);
 				break;
-			case GameState::COLOR_CHOICE:
-				table.getTitle().setText("Escolha a sua cor:");
-				table.setTable(2, 2);
-				btn1.setText("Brancas");
-				btn2.setText("Negras");
-				btn3.setText("return");
-				table.items.push_back(&btn1);
-				table.items.push_back(&btn2);
-				table.items.push_back(&btn3);
+			case GAME_STATE::COLOR_CHOICE:
+				box.getTitle().setText("Escolha a sua cor:");
+				box.setButtonsGrid(2, 2);
 				break;
-			case GameState::EXITING:
-				table.getTitle().setText("Deseja realmente sair?");
-				table.setTable(1, 2);
-				btn1.setText("sim");
-				btn2.setText("nao");
-				table.items.push_back(&btn1);
-				table.items.push_back(&btn2);
+			case GAME_STATE::EXITING:
+				box.getTitle().setText("Deseja realmente sair?");
+				box.setButtonsGrid(1, 2);
 		}
 	}
 
@@ -71,15 +51,11 @@ public:
 	~GameManager() {}
 
 	bool OnUserCreate() override {
-		btn1.setScale(MENU_SCALE);
-		btn2.setScale(MENU_SCALE);
-		btn3.setScale(MENU_SCALE);
-		table.getTitle().setScale(MENU_SCALE);
+		box.getTitle().setScale(MENU_SCALE);
 
-		currentState = GameState::MAIN_MENU;
-		lastState = currentState;
+		stack.push(GAME_STATE::MAIN_MENU);
 
-		buildTable();
+		buildBoxMenu();
 
 		return board.OnUserCreate(*this);
 	}
@@ -87,55 +63,59 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override {
 		Clear(olc::BLANK);
 
-		if (GetKey(olc::ESCAPE).bPressed)
-			if (currentState != lastState) {
-				currentState = lastState;
-				table.items.clear();
-			}
-
-		if (currentState == GameState::PLAYING)
-			return board.OnUserUpdate(*this, fElapsedTime);
-
-		if (table.items.empty())
-			buildTable();
-
-		table.onUserUpdate(*this, fElapsedTime, {50,200});
-
-		if (currentState == GameState::MAIN_MENU || currentState == GameState::PAUSED_MENU) {
-			if (btn1.isMousePressed()) {
-				currentState = GameState::PLAYING;
-			} else if (btn2.isMousePressed()) {
-				currentState = GameState::COLOR_CHOICE;
-				table.items.clear();
-			} else if (btn3.isMousePressed()) {
-				currentState = GameState::EXITING;
-				table.items.clear();
-			}
-		} else if (currentState == GameState::COLOR_CHOICE) {
-			if (btn1.isMousePressed()) {
-				board.startNewGame(Piece::COLOR::WHITE);
-				currentState = GameState::PLAYING;
-				lastState = GameState::PAUSED_MENU;
-				table.items.clear();
-			} else if (btn2.isMousePressed()) {
-				board.startNewGame(Piece::COLOR::BLACK);
-				currentState = GameState::PLAYING;
-				lastState = GameState::PAUSED_MENU;
-				table.items.clear();
-			} else if (btn3.isMousePressed()) {
-				currentState = lastState;
-				table.items.clear();
-			}
-		} else if (currentState == GameState::EXITING) {
-			if (btn2.isMousePressed()) {
-				currentState = lastState;
-				table.items.clear();
-			} else if (btn1.isMousePressed()) {
-				table.items.clear();
-				return false;
-			}
+		if (GetKey(olc::ESCAPE).bPressed) {
+			if (stack.size() > 1)
+				stack.pop();
+			else if (stack.top() == GAME_STATE::PLAYING)
+				stack.push(GAME_STATE::PAUSED_MENU);
+			box.clear();
 		}
 
+		if (stack.top() == GAME_STATE::PLAYING)
+			return board.OnUserUpdate(*this, fElapsedTime);
+
+		if (box.empty())
+			buildBoxMenu();
+
+		box.onUserUpdate(*this, fElapsedTime, {50,200});
+
+		if (stack.top() == GAME_STATE::COLOR_CHOICE) {
+			if (box["Brancas"].isMousePressed()) {
+				while (!stack.empty()) stack.pop();
+				stack.push(GAME_STATE::PLAYING);
+				board.startNewGame(Piece::COLOR::WHITE);
+				box.clear();
+			} else if (box["Negras"].isMousePressed()) {
+				while (!stack.empty()) stack.pop();
+				stack.push(GAME_STATE::PLAYING);
+				board.startNewGame(Piece::COLOR::BLACK);
+				box.clear();
+			} else if (box["cancelar"].isMousePressed()) {
+				stack.pop();
+				box.clear();
+			}
+		} else if (stack.top() == GAME_STATE::EXITING) {
+			if (box["sim"].isMousePressed()) {
+				box.clear();
+				return false;
+			} else if (box["nao"].isMousePressed()) {
+				stack.pop();
+				box.clear();
+			}
+		} else {
+			if (stack.top() == GAME_STATE::PAUSED_MENU)
+				if (box["continue"].isMousePressed()) {
+					stack.pop();
+					box.clear();
+				}
+			if (box["novo jogo"].isMousePressed()) {
+				stack.push(GAME_STATE::COLOR_CHOICE);
+				box.clear();
+			} else if (box["sair"].isMousePressed()) {
+				stack.push(GAME_STATE::EXITING);
+				box.clear();
+			}
+		}
 		return true;
 	}
 };

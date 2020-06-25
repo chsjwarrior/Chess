@@ -17,14 +17,14 @@ private:
 
 	olc::Decal* pieces;
 
-	BitBoard bitBoard;
-	std::map<Position, Piece, std::less<Position>> board;
-
 	std::optional<Position> selected;
 	std::optional<std::pair<olc::vu2d, olc::vu2d>> lastMove;
 	std::optional<std::pair<olc::vf2d, Piece>> movePiece;
 
-	//0======================================================================0	
+	BitBoard bitBoard;
+	std::map<Position, Piece, std::less<Position>> board;
+
+	//0======================================================================0
 	inline const bool isMouseInsideBoard(const olc::vu2d& point) const {
 		return point.x >= BORDER_SIZE && point.x < BOARD_SIZE + BORDER_SIZE &&
 			point.y >= BORDER_SIZE && point.y < BOARD_SIZE + BORDER_SIZE;
@@ -143,7 +143,7 @@ public:
 		}
 
 		if (bitBoard.attacks != 0)
-			for (uint8_t i = 0; i < 64; i++) {
+			for (uint8_t i = 0; i < 64; i++)
 				if (bitBoardOperations::isSquareAttacked(bitBoard, i)) {
 					pos.setSquare(i);
 					pos.invert();
@@ -151,7 +151,6 @@ public:
 					point.y = positionToPoint(pos.getRank());
 					olc.FillCircle(point.x + 26, point.y + 26, CELL_SIZE.x / 5, olc::YELLOW);
 				}
-			}
 
 		if (movePiece.has_value()) {
 			olc.DrawPartialDecal(movePiece->first, CELL_SIZE, pieces, {float(((uint8_t) movePiece->second.name * CELL_SIZE.x) + ((uint8_t) movePiece->second.color * CELL_SIZE.y * 6)), 0}, CELL_SIZE);
@@ -163,18 +162,16 @@ public:
 			movePiece->first.x += deltaX / distance;
 			movePiece->first.y += deltaY / distance;
 
-			if (distance < 4) {
+			if (distance < 5) {
 				pos.setFile(pointToPosition(lastMove->second.x));
 				pos.setRank(pointToPosition(lastMove->second.y));
 				pos.invert();
 
 				if (board.count(pos) > 0)
-					board.erase(pos);					
+					board.erase(pos);
 				board.emplace(pos, movePiece->second);
-				
-				movePiece.reset();
 
-				
+				movePiece.reset();
 
 				std::cout << bitBoard;
 			}
