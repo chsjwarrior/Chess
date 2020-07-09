@@ -154,7 +154,7 @@
     <ClInclude Include="Knight.h" />
     <ClInclude Include="MoveGenerator.h" />
     <ClInclude Include="MoveMaker.h" />
-    <ClInclude Include="OLCBehavior.h" />
+    <ClInclude Include="GameBehavior.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
     <ClInclude Include="GUIComponent.h" />
     <ClInclude Include="Pawn.h" />

@@ -1,6 +1,6 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
-#include "GUIComponent.h" 
+#include "GUIComponent.h"
 #include "Board.h"
 #include <stack>
 
@@ -16,6 +16,7 @@ private:
 		MAIN_MENU,
 		PAUSED_MENU,
 		COLOR_CHOICE,
+		PAWN_PROMOTION,
 		PLAYING,
 		EXITING
 	};
@@ -39,6 +40,10 @@ private:
 			case GAME_STATE::COLOR_CHOICE:
 				box.getTitle().setText("Escolha a sua cor:");
 				box.setButtonsGrid(2, 2);
+				break;
+			case GAME_STATE::PAWN_PROMOTION:
+				box.getTitle().setText("Promoção do peao:");
+				box.setButtonsGrid(1, 4);
 				break;
 			case GAME_STATE::EXITING:
 				box.getTitle().setText("Deseja realmente sair?");

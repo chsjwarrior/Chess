@@ -185,11 +185,13 @@ namespace gui {
 		const olc::Pixel getBackgroundColor() const { return backgroudColor; }
 		void setBackgroundColor(olc::Pixel color) { backgroudColor = color; }
 
-		Label& getTitle() { return title; }
+		Label& getTitle() {
+			return title;
+		}
 
 		Button& operator[](std::string btn) {
 			if (buttons.count(btn) == 0)
-				buttons.emplace(btn, Button(btn));
+				buttons.emplace(btn, Button(btn, title.getScale()));
 			return buttons[btn];
 		}
 

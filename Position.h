@@ -12,15 +12,25 @@ private:
 	uint8_t position;
 
 public:
-	Position() : position(0) {}
+	Position() : position(0) { std::cout << "construted: " << *this; }
 
 	explicit Position(const uint8_t file, const uint8_t rank) {
 		setFile(file);
 		setRank(rank);
+		std::cout << "construted: " << *this;
 	}
 
 	explicit Position(const uint8_t square) {
 		setSquare(square);
+		std::cout << "construted: " << *this;
+	}
+
+	explicit Position(const Position& other) : position(other.position) {
+		std::cout << "copy construted: " << *this;
+	}
+
+	~Position() {
+		std::cout << "destroyed: " << *this;
 	}
 
 	const uint8_t getRank() const {
@@ -77,6 +87,7 @@ public:
 	}
 
 	friend std::ostringstream& operator<<(std::ostringstream& os, const Position& pos);
+	friend std::ostream& operator<<(std::ostream& os, const Position& pos);
 };
 
 std::ostringstream& operator<<(std::ostringstream& os, const Position& pos) {
@@ -84,5 +95,13 @@ std::ostringstream& operator<<(std::ostringstream& os, const Position& pos) {
 	s = char(pos.getFile() + 97);
 	s += char(pos.getRank() + 49);
 	os << s;
+	return os;
+}
+std::ostream& operator<<(std::ostream& os, const Position& pos) {
+	std::string s;
+	s = char(pos.getFile() + 97);
+	s += char(pos.getRank() + 49);
+	os << s;
+	os << std::endl;
 	return os;
 }

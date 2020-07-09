@@ -29,13 +29,13 @@ struct Piece {
 
 	Piece() = delete;
 	explicit Piece(const Piece::NAME name, const Piece::COLOR color) : name(name), color(color) {
-		std::cout << "construted: " << *this;
+		//std::cout << "construted: " << *this;
 	}
 	Piece(const Piece& other) : name(other.name), color(other.color) {
-		std::cout << "copy construted: " << *this;
+		//std::cout << "copy construted: " << *this;
 	}
 	~Piece() {
-		std::cout << "destroyed: " << *this;
+		//std::cout << "destroyed: " << *this;
 	}
 	Piece& operator=(Piece&) = delete;
 

@@ -4,7 +4,8 @@ private:
 	const uint64_t EN_PASSANT_RANK[2] = {bitBoardOperations::RANK_5, bitBoardOperations::RANK_4};
 	const uint64_t PANW_PROMOTION_RANK[2] = {bitBoardOperations::RANK_1, bitBoardOperations::RANK_8};
 
-	const Position origin, destiny;
+	const Position& origin;
+	const Position& destiny;
 	std::optional<Piece> capture;
 	bool enPassantCapture, pawnPromotion, smallRook, bigRook;
 

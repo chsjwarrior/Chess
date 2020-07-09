@@ -1,10 +1,10 @@
 #pragma once
 #include"olcPixelGameEngine.h"
 
-class OLCBehavior {
+class GameBehavior {
 public:
-	OLCBehavior() {}
-	virtual ~OLCBehavior() {}
+	GameBehavior() {}
+	virtual ~GameBehavior() {}
 
 	virtual bool OnUserCreate(olc::PixelGameEngine& olc) = 0;
 
