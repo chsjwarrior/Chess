@@ -89,7 +89,7 @@ public:
 	}
 
 	bool OnUserCreate(olc::PixelGameEngine& olc) override {
-		pieces = new olc::Decal(new olc::Sprite("PiecesSprite.png"));
+		pieces = new olc::Decal(new olc::Sprite("Images/PiecesSprite.png"));
 
 		boardLayer = olc.CreateLayer();
 		olc.SetDrawTarget(boardLayer);
@@ -110,8 +110,8 @@ public:
 			olc.DrawString(x, BOARD_SIZE + BORDER_SIZE + 9, value, olc::YELLOW);
 		}
 
-		std::unique_ptr<olc::Sprite> whiteSquare(new olc::Sprite("WhiteSquare.png"));
-		std::unique_ptr<olc::Sprite> blackSquare(new olc::Sprite("BlackSquare.png"));
+		std::unique_ptr<olc::Sprite> whiteSquare(new olc::Sprite("Images/WhiteSquare.png"));
+		std::unique_ptr<olc::Sprite> blackSquare(new olc::Sprite("Images/BlackSquare.png"));
 		for (uint8_t x = 0; x < 8; x++)
 			for (uint8_t y = 0; y < 8; y++)
 				if ((x % 2 == 0) == (y % 2 == 0))
