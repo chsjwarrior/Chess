@@ -1,19 +1,7 @@
 #pragma once
 
-/*
-namespace pieces {
-	const std::array<NAME, 6> allPiecesName = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
-
-	COLOR otherColor(const uint8_t color) {
-		if (color == COLOR::BLACK)
-			return COLOR::WHITE;
-		return COLOR::BLACK;
-	}
-}
-*/
-
 struct Piece {
-	enum class NAME : uint8_t {
+	enum Name : uint8_t {
 		PAWN = 0,
 		KNIGHT,
 		BISHOP,
@@ -22,77 +10,88 @@ struct Piece {
 		KING
 	};
 
-	enum class COLOR : uint8_t { WHITE = 0, BLACK };
+	enum Color : uint8_t { WHITE = 0, BLACK };
 
-	const NAME name;
-	const COLOR color;
+	const Name NAME;
+	const Color COLOR;
 
 	Piece() = delete;
-	explicit Piece(const Piece::NAME name, const Piece::COLOR color) : name(name), color(color) {
-		//std::cout << "construted: " << *this;
+	Piece& operator=(Piece&) = delete;
+
+	explicit Piece(const Piece::Name name, const Piece::Color color) : NAME(name), COLOR(color) {
+		std::cout << "Piece(Piece::Name, Piece::Color): " << *this;
 	}
-	Piece(const Piece& other) : name(other.name), color(other.color) {
-		//std::cout << "copy construted: " << *this;
+	explicit Piece(const Piece& other) : NAME(other.NAME), COLOR(other.COLOR) {
+		std::cout << "Piece(Piece&): " << *this;
 	}
 	~Piece() {
-		//std::cout << "destroyed: " << *this;
+		std::cout << "~Piece(): " << *this;
 	}
-	Piece& operator=(Piece&) = delete;
+
+	const Piece::Color otherColor(Piece::Color color) const {
+		if (color == Piece::Color::WHITE)
+			return Piece::Color::BLACK;
+		return Piece::Color::WHITE;
+	}
+
+	const Piece::Color otherColor() const {
+		return otherColor(COLOR);
+	}
 
 	friend std::ostringstream& operator<<(std::ostringstream& os, const Piece& piece);
 	friend std::ostream& operator<<(std::ostream& os, const Piece& piece);
 };
 
 std::ostringstream& operator<<(std::ostringstream& os, const Piece& piece) {
-	if (piece.color == Piece::COLOR::BLACK)
+	if (piece.COLOR == Piece::Color::BLACK)
 		os << "Black ";
 	else
 		os << "White ";
 
-	switch (piece.name) {
-		case Piece::NAME::PAWN:
+	switch (piece.NAME) {
+		case Piece::Name::PAWN:
 			os << "Pawn";
 			break;
-		case Piece::NAME::KNIGHT:
+		case Piece::Name::KNIGHT:
 			os << "Knight";
 			break;
-		case Piece::NAME::BISHOP:
+		case Piece::Name::BISHOP:
 			os << "Bishop";
 			break;
-		case Piece::NAME::ROOK:
+		case Piece::Name::ROOK:
 			os << "Rook";
 			break;
-		case Piece::NAME::QUEEN:
+		case Piece::Name::QUEEN:
 			os << "Queen";
 			break;
-		case Piece::NAME::KING:
+		case Piece::Name::KING:
 			os << "King";
 	}
 	return os;
 }
 std::ostream& operator<<(std::ostream& os, const Piece& piece) {
-	if (piece.color == Piece::COLOR::BLACK)
+	if (piece.COLOR == Piece::Color::BLACK)
 		os << "Black ";
 	else
 		os << "White ";
 
-	switch (piece.name) {
-		case Piece::NAME::PAWN:
+	switch (piece.NAME) {
+		case Piece::Name::PAWN:
 			os << "Pawn";
 			break;
-		case Piece::NAME::KNIGHT:
+		case Piece::Name::KNIGHT:
 			os << "Knight";
 			break;
-		case Piece::NAME::BISHOP:
+		case Piece::Name::BISHOP:
 			os << "Bishop";
 			break;
-		case Piece::NAME::ROOK:
+		case Piece::Name::ROOK:
 			os << "Rook";
 			break;
-		case Piece::NAME::QUEEN:
+		case Piece::Name::QUEEN:
 			os << "Queen";
 			break;
-		case Piece::NAME::KING:
+		case Piece::Name::KING:
 			os << "King";
 	}
 	os << std::endl;

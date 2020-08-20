@@ -1,6 +1,5 @@
 #pragma once
 #include"olcPixelGameEngine.h"
-
 /*
 This is a simple class to create a game gui with buttons and labels.
 It muss be improve to generic use in other games.

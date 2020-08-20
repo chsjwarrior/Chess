@@ -4,30 +4,31 @@ private:
 	const uint64_t EN_PASSANT_RANK[2] = {bitBoardOperations::RANK_5, bitBoardOperations::RANK_4};
 	const uint64_t PANW_PROMOTION_RANK[2] = {bitBoardOperations::RANK_1, bitBoardOperations::RANK_8};
 
-	const Position& origin;
-	const Position& destiny;
+	const uint8_t origin;
+	const uint8_t destiny;
 	std::optional<Piece> capture;
 	bool enPassantCapture, pawnPromotion, smallRook, bigRook;
 
 	void setCapture(const BitBoard& bitBoard, const uint8_t& destiny) {
 		auto piece = bitBoardOperations::getPieceFromSquare(bitBoard, destiny);
 		if (piece.has_value())
-			capture.emplace(piece->name, piece->color);
+			capture.emplace(piece->NAME, piece->COLOR);
 	}
 
 	//Este método verifica se o peão vai realizar uma captura em en passant
 	void setEnPassantCapture(BitBoard& bitBoard, const Piece& piece, const uint64_t origin, const uint64_t destiny) {
-		if (piece.name != Piece::NAME::PAWN)
+		if (piece.NAME != Piece::Name::PAWN)
 			return;
 
-		const uint64_t enPassant = bitBoardOperations::getIntersections(bitBoard.flags, EN_PASSANT_RANK[otherColor((uint8_t) piece.color)]);
+		const uint64_t enPassant = bitBoardOperations::getIntersections(bitBoard.flags, EN_PASSANT_RANK[piece.otherColor()]);
 		if (enPassant != 0) {
-			if (piece.color == Piece::COLOR::WHITE) {
+			if (piece.COLOR == Piece::Color::WHITE) {
 				if (bitBoardOperations::hasIntersection(origin << 1, enPassant))
 					enPassantCapture = bitBoardOperations::hasIntersection(destiny >> 8, enPassant);
 				else if (bitBoardOperations::hasIntersection(origin >> 1, enPassant))
 					enPassantCapture = bitBoardOperations::hasIntersection(destiny >> 8, enPassant);
-			} else {
+			}
+			else {
 				if (bitBoardOperations::hasIntersection(origin << 1, enPassant))
 					enPassantCapture = bitBoardOperations::hasIntersection(destiny << 8, enPassant);
 				else if (bitBoardOperations::hasIntersection(origin >> 1, enPassant))
@@ -35,7 +36,7 @@ private:
 			}
 
 			if (enPassantCapture)
-				bitBoardOperations::unsetPieceOnSquare(bitBoard, (uint8_t) piece.name, (uint8_t) otherColor((uint8_t) piece.color),
+				bitBoardOperations::unsetPieceOnSquare(bitBoard, piece.NAME, piece.otherColor(),
 													   bitBoardOperations::getSquareFromBitmap(enPassant));
 		}
 	}
@@ -45,52 +46,52 @@ private:
 	 * na posição de enPassant.
 	 */
 	void setEnPassantMove(BitBoard& bitBoard, const Piece& piece, const uint64_t origin, const uint64_t destiny) {
-		bitBoard.flags = bitBoardOperations::unsetIntersections(bitBoard.flags, EN_PASSANT_RANK[otherColor((uint8_t) piece.color)]);
-		if (piece.name == Piece::NAME::PAWN)
-			if (bitBoardOperations::hasIntersection(origin, bitBoardOperations::INITIAL_POSITION[(uint8_t) piece.name][(uint8_t) piece.color]))
-				bitBoard.flags = bitBoardOperations::getUnion(bitBoard.flags, bitBoardOperations::getIntersections(destiny, EN_PASSANT_RANK[(uint8_t) piece.color]));
+		bitBoard.flags = bitBoardOperations::unsetIntersections(bitBoard.flags, EN_PASSANT_RANK[piece.otherColor()]);
+		if (piece.NAME == Piece::Name::PAWN)
+			if (bitBoardOperations::hasIntersection(origin, bitBoardOperations::INITIAL_POSITION[piece.NAME][piece.COLOR]))
+				bitBoard.flags = bitBoardOperations::getUnion(bitBoard.flags, bitBoardOperations::getIntersections(destiny, EN_PASSANT_RANK[piece.COLOR]));
 	}
 
 	// Este método verifca se ocorreu uma promoção do peão
 	void setPawnPromotion(const BitBoard& bitBoard, const Piece& piece, const uint64_t destiny) {
-		if (piece.name == Piece::NAME::PAWN)
-			pawnPromotion = bitBoardOperations::hasIntersection(destiny, PANW_PROMOTION_RANK[(uint8_t) piece.color]);
+		if (piece.NAME == Piece::Name::PAWN)
+			pawnPromotion = bitBoardOperations::hasIntersection(destiny, PANW_PROMOTION_RANK[piece.COLOR]);
 	}
 
 	//Este método verifica se o rei vai mover duas casas para um lado e efetua os	movimento do roque
 	void setSmallRook(BitBoard& bitBoard, const Piece& piece, const uint64_t origin, const uint64_t destiny) {
-		if (piece.name == Piece::NAME::KING) {
-			const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t) piece.name][(uint8_t) piece.color];
+		if (piece.NAME == Piece::Name::KING) {
+			const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[piece.NAME][piece.COLOR];
 			smallRook = bitBoardOperations::hasIntersection(kingBitmap, origin)
 				&& bitBoardOperations::hasIntersection(kingBitmap << 2, destiny);
 
 			if (smallRook) {
 				uint8_t square = bitBoardOperations::getSquareFromBitmap(kingBitmap << 3);
-				bitBoardOperations::unsetPieceOnSquare(bitBoard, (uint8_t) Piece::NAME::ROOK, (uint8_t) piece.color, square);
+				bitBoardOperations::unsetPieceOnSquare(bitBoard, Piece::Name::ROOK, piece.COLOR, square);
 				square = bitBoardOperations::getSquareFromBitmap(kingBitmap << 1);
-				bitBoardOperations::setPieceOnSquare(bitBoard, (uint8_t) Piece::NAME::ROOK, (uint8_t) piece.color, square);
+				bitBoardOperations::setPieceOnSquare(bitBoard, Piece::Name::ROOK, piece.COLOR, square);
 			}
 		}
 	}
 
 	//Este método verifica se o rei vai mover duas casas para um lado e efetua os	movimento do roque
 	void setBigRook(BitBoard& bitBoard, const Piece& piece, const uint64_t origin, const uint64_t destiny) {
-		if (piece.name == Piece::NAME::KING) {
-			const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t) piece.name][(uint8_t) piece.color];
+		if (piece.NAME == Piece::Name::KING) {
+			const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[piece.NAME][piece.COLOR];
 			bigRook = bitBoardOperations::hasIntersection(kingBitmap, origin)
 				&& bitBoardOperations::hasIntersection(kingBitmap >> 2, destiny);
 
 			if (bigRook) {
 				uint8_t square = bitBoardOperations::getSquareFromBitmap(kingBitmap >> 4);
-				bitBoardOperations::unsetPieceOnSquare(bitBoard, (uint8_t) Piece::NAME::ROOK, (uint8_t) piece.color, square);
+				bitBoardOperations::unsetPieceOnSquare(bitBoard, Piece::Name::ROOK, piece.COLOR, square);
 				square = bitBoardOperations::getSquareFromBitmap(kingBitmap >> 1);
-				bitBoardOperations::setPieceOnSquare(bitBoard, (uint8_t) Piece::NAME::ROOK, (uint8_t) piece.color, square);
+				bitBoardOperations::setPieceOnSquare(bitBoard, Piece::Name::ROOK, piece.COLOR, square);
 			}
 		}
 	}
 
 public:
-	explicit MoveMaker(const Position& origin, const Position& destiny) :
+	explicit MoveMaker(const uint8_t& origin, const uint8_t& destiny) :
 		origin(origin),
 		destiny(destiny),
 		capture(std::nullopt),
@@ -101,30 +102,30 @@ public:
 	~MoveMaker() { capture.reset(); }
 
 	void makeMove(BitBoard& bitBoard) {
-		const uint64_t originBitmap = bitBoardOperations::getBitmapFromSquare(origin.getSquare());
-		const uint64_t destinyBitmap = bitBoardOperations::getBitmapFromSquare(destiny.getSquare());
-		std::optional<Piece> piece = bitBoardOperations::getPieceFromSquare(bitBoard, origin.getSquare());
+		const uint64_t originBitmap = bitBoardOperations::getBitmapFromSquare(origin);
+		const uint64_t destinyBitmap = bitBoardOperations::getBitmapFromSquare(destiny);
+		std::optional<Piece> piece = bitBoardOperations::getPieceFromSquare(bitBoard, origin);
 
-		setCapture(bitBoard, destiny.getSquare());
+		setCapture(bitBoard, destiny);
 		setEnPassantCapture(bitBoard, *piece, originBitmap, destinyBitmap);
 		setEnPassantMove(bitBoard, *piece, originBitmap, destinyBitmap);
 		setPawnPromotion(bitBoard, *piece, destinyBitmap);
 
-		bitBoardOperations::unsetPieceOnSquare(bitBoard, (uint8_t) piece->name, (uint8_t) piece->color, origin.getSquare());
+		bitBoardOperations::unsetPieceOnSquare(bitBoard, piece->NAME, piece->COLOR, origin);
 		if (capture.has_value())
-			bitBoardOperations::unsetPieceOnSquare(bitBoard, (uint8_t) capture->name, (uint8_t) capture->color, destiny.getSquare());
-		bitBoardOperations::setPieceOnSquare(bitBoard, (uint8_t) piece->name, (uint8_t) piece->color, destiny.getSquare());
+			bitBoardOperations::unsetPieceOnSquare(bitBoard, capture->NAME, capture->COLOR, destiny);
+		bitBoardOperations::setPieceOnSquare(bitBoard, piece->NAME, piece->COLOR, destiny);
 		//bitBoard.flags = bitBoardOperations::unsetIntersections(bitBoard.flags, originBitmap);
 
 		setSmallRook(bitBoard, *piece, originBitmap, destinyBitmap);
 		setBigRook(bitBoard, *piece, originBitmap, destinyBitmap);
 	}
 
-	const Position& getOrigin() const {
+	const uint8_t& getOrigin() const {
 		return origin;
 	}
 
-	const Position& getDestiny() const {
+	const uint8_t& getDestiny() const {
 		return destiny;
 	}
 
@@ -146,11 +147,5 @@ public:
 
 	const bool& isBigRook() const {
 		return bigRook;
-	}
-
-	uint8_t otherColor(const uint8_t& color) const {
-		if (color == 0)
-			return 1;
-		return 0;
 	}
 };

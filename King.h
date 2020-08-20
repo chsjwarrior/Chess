@@ -3,8 +3,8 @@
 #include "BitBoardOperations.h"
 
 namespace king {
-	const uint64_t getMoves(const BitBoard& bitBoard, const Position& posKing) {
-		const uint64_t bitmapKing = bitBoardOperations::getBitmapFromSquare(posKing.getSquare());
+	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t& square) {
+		const uint64_t bitmapKing = bitBoardOperations::getBitmapFromSquare(square);
 
 		/* casas acima e abaixo do rei */
 		uint64_t moves = bitBoardOperations::getUnion(bitmapKing << 8, bitmapKing >> 8);
@@ -21,13 +21,13 @@ namespace king {
 	}
 
 	const bool wasKingMoved(const BitBoard& bitBoard, const uint8_t& colorKing) {
-		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::INITIAL_POSITION[(uint8_t) Piece::NAME::KING][colorKing]);
+		return !bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::INITIAL_POSITION[(uint8_t)Piece::Name::KING][colorKing]);
 	}
 
 	/* Este método verifica se as casas do castelo do rei estão livres */
 	const bool isPathSmallRookClear(const BitBoard& bitBoard, const uint8_t color) {
-		const uint64_t allPieces = bitBoard.allPieces();
-		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t) Piece::NAME::KING][color];
+		const uint64_t allPieces = bitBoardOperations::allPieces(bitBoard);
+		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t)Piece::Name::KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap << 1))
 				if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 2))
@@ -37,8 +37,8 @@ namespace king {
 
 	/* Este método verifica se a as casas do castelo da dama estão livres */
 	const bool isPathBigRookClear(const BitBoard& bitBoard, const uint8_t color) {
-		const uint64_t allPieces = bitBoard.allPieces();
-		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t) Piece::NAME::KING][color];
+		const uint64_t allPieces = bitBoardOperations::allPieces(bitBoard);
+		const uint64_t kingBitmap = bitBoardOperations::INITIAL_POSITION[(uint8_t)Piece::Name::KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap >> 1))
 				if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 2))

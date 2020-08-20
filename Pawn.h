@@ -53,14 +53,14 @@ namespace pawn {
 		return moves;
 	}
 
-	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t colorPawn, const Position& posPawn) {
-		const uint64_t bitmapPawn = bitBoardOperations::getBitmapFromSquare(posPawn.getSquare());
+	const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t colorPawn, const uint8_t& square) {
+		const uint64_t bitmapPawn = bitBoardOperations::getBitmapFromSquare(square);
 		uint64_t moves;
 
-		if (colorPawn == (uint8_t)Piece::COLOR::WHITE)
-			moves = whitePawn(bitBoard, bitBoard.allPieces(), bitmapPawn);
+		if (colorPawn == (uint8_t)Piece::Color::WHITE)
+			moves = whitePawn(bitBoard, bitBoardOperations::allPieces(bitBoard), bitmapPawn);
 		else
-			moves = blackPawn(bitBoard, bitBoard.allPieces(), bitmapPawn);
+			moves = blackPawn(bitBoard, bitBoardOperations::allPieces(bitBoard), bitmapPawn);
 
 		if (bitBoardOperations::hasIntersection(bitmapPawn, bitBoardOperations::FILE_A))
 			moves = bitBoardOperations::unsetIntersections(moves, bitBoardOperations::FILE_H);

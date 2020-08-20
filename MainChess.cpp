@@ -1,7 +1,7 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 #include "GUIComponent.h"
-#include "Board.h"
+#include "BoardGUI.h"
 #include <stack>
 
 /*
@@ -23,7 +23,7 @@ private:
 
 	gui::MessageBox box;
 
-	Board board;
+	BoardGUI board;
 
 	std::stack<GAME_STATE> stack;
 
@@ -88,26 +88,31 @@ public:
 			if (box["Brancas"].isMousePressed()) {
 				while (!stack.empty()) stack.pop();
 				stack.push(GAME_STATE::PLAYING);
-				board.startNewGame(Piece::COLOR::WHITE);
+				board.startNewGame(Piece::Color::WHITE);
 				box.clear();
-			} else if (box["Negras"].isMousePressed()) {
+			}
+			else if (box["Negras"].isMousePressed()) {
 				while (!stack.empty()) stack.pop();
 				stack.push(GAME_STATE::PLAYING);
-				board.startNewGame(Piece::COLOR::BLACK);
+				board.startNewGame(Piece::Color::BLACK);
 				box.clear();
-			} else if (box["cancelar"].isMousePressed()) {
+			}
+			else if (box["cancelar"].isMousePressed()) {
 				stack.pop();
 				box.clear();
 			}
-		} else if (stack.top() == GAME_STATE::EXITING) {
+		}
+		else if (stack.top() == GAME_STATE::EXITING) {
 			if (box["sim"].isMousePressed()) {
 				box.clear();
 				return false;
-			} else if (box["nao"].isMousePressed()) {
+			}
+			else if (box["nao"].isMousePressed()) {
 				stack.pop();
 				box.clear();
 			}
-		} else {
+		}
+		else {
 			if (stack.top() == GAME_STATE::PAUSED_MENU)
 				if (box["continue"].isMousePressed()) {
 					stack.pop();
@@ -116,7 +121,8 @@ public:
 			if (box["novo jogo"].isMousePressed()) {
 				stack.push(GAME_STATE::COLOR_CHOICE);
 				box.clear();
-			} else if (box["sair"].isMousePressed()) {
+			}
+			else if (box["sair"].isMousePressed()) {
 				stack.push(GAME_STATE::EXITING);
 				box.clear();
 			}
