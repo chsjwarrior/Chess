@@ -8,13 +8,12 @@
 
 class MoveGenerator {
 public:
-
-	const bool hasPossibleMoves(BitBoard& bitBoard, const uChar namePiece, const uChar colorPiece, const uChar& square) {
-		bitBoard.attacks = getValidMoves(bitBoard, namePiece, colorPiece, square);
+	const bool hasPossibleMoves(BitBoard& bitBoard, const uChar namePiece, const uChar colorPiece, const uChar& square) const {
+		generateValidMoves(bitBoard, namePiece, colorPiece, square);
 		return bitBoard.attacks != 0;
 	}
 
-	const bool hasPossibleMoves(BitBoard bitBoard, const uChar& color) {
+	const bool hasPossibleMoves(BitBoard bitBoard, const uChar& color) const {
 		generateAttacks(bitBoard, color, true);
 		return bitBoard.attacks != 0;
 	}
@@ -23,13 +22,14 @@ public:
 	const void generateAttacks(BitBoard& bitBoard, const uChar& color, const bool& validMoves) const {
 		Tbitmap attacks = 0;
 		uChar square;
-		for (uint8_t namePiece = 0; namePiece < 6; namePiece++) {
+		for (uChar namePiece = 0; namePiece < 6; namePiece++) {
 			for (Tbitmap pieceBitmap = bitBoard.bitMaps[namePiece][color]; pieceBitmap != 0; pieceBitmap = bitBoardOperations::remainder(pieceBitmap)) {
 				square = bitBoardOperations::getSquareFromBitmap(pieceBitmap);
 				if (validMoves)
-					attacks = bitBoardOperations::getUnion(attacks, getValidMoves(bitBoard, namePiece, color, square));
+					generateValidMoves(bitBoard, namePiece, color, square);
 				else
-					attacks = bitBoardOperations::getUnion(attacks, getMoves(bitBoard, namePiece, color, square));
+					generateMoves(bitBoard, namePiece, color, square);
+				attacks = bitBoardOperations::getUnion(attacks, bitBoard.attacks);
 			}
 		}
 		bitBoard.attacks = attacks;
@@ -37,49 +37,41 @@ public:
 
 	//gera um bitmap das casas alcançadas pela peça sem colocar o rei da mesma cor em xeque
 	const void generateValidMoves(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, const uChar& square) const {
-		bitBoard.attacks = getValidMoves(bitBoard, namePiece, colorPiece, square);
+		generateMoves(bitBoard, namePiece, colorPiece, square);
+		tryToMakeMove(bitBoard, namePiece, colorPiece, square);
+		tryToMakeCastle(bitBoard, namePiece, colorPiece);
 	}
 
 private:
-	//retorna um bitmap das casas alcançadas pela peça sem colocar o rei da mesma cor em xeque
-	const Tbitmap getValidMoves(BitBoard& bitBoard, const uint8_t& namePiece, const uint8_t& colorPiece, const uChar& square) const {
-		Tbitmap attacks = 0;
-		attacks = getMoves(bitBoard, namePiece, colorPiece, square);
-		tryToMakeMove(bitBoard, namePiece, colorPiece, square, attacks);
-		tryToMakeCastle(bitBoard, namePiece, colorPiece, attacks);
-		return attacks;
-	}
-
 	//retorna um bitmap das casas alcançadas pela pela peça
-	const Tbitmap getMoves(const BitBoard& bitBoard, const uChar& namePiece, const uChar& colorPiece, const uChar& square) const {
-		uint64_t attacks = 0;
+	void generateMoves(BitBoard& bitBoard, const uChar& namePiece, const uChar& colorPiece, const uChar& square) const {
 		switch (namePiece) {
 			case PAWN:
-				attacks = pawn::getMoves(bitBoard, colorPiece, square);
+				bitBoard.attacks = pawn::getMoves(bitBoard, colorPiece, square);
 				break;
 			case KNIGHT:
-				attacks = knight::getMoves(bitBoard, square);
+				bitBoard.attacks = knight::getMoves(square);
 				break;
 			case BISHOP:
-				attacks = bishop::getMoves(bitBoard, square);
+				bitBoard.attacks = bishop::getMoves(bitBoardOperations::allPieces(bitBoard), square);
 				break;
 			case ROOK:
-				attacks = rook::getMoves(bitBoard, square);
+				bitBoard.attacks = rook::getMoves(bitBoardOperations::allPieces(bitBoard), square);
 				break;
 			case QUEEN:
-				attacks = bishop::getMoves(bitBoard, square) | rook::getMoves(bitBoard, square);
+				bitBoard.attacks = bishop::getMoves(bitBoardOperations::allPieces(bitBoard), square) | rook::getMoves(bitBoardOperations::allPieces(bitBoard), square);
 				break;
 			case KING:
-				attacks = king::getMoves(bitBoard, square);
+				bitBoard.attacks = king::getMoves(square);
 		}
-		return bitBoardOperations::unsetIntersections(attacks, bitBoardOperations::allPiecesColor(bitBoard, colorPiece));
+		bitBoard.attacks = bitBoardOperations::unsetIntersections(bitBoard.attacks, bitBoardOperations::allPiecesColor(bitBoard, colorPiece));
 	}
 
 	//tenta mover a peça sem colocar o rei em xeque
-	void tryToMakeMove(const BitBoard& bitBoard, const uChar& namePiece, const uChar& colorPiece, const uChar& origin, Tbitmap& attacks) const {
+	void tryToMakeMove(BitBoard& bitBoard, const uChar& namePiece, const uChar& colorPiece, const uChar& origin) const {
 		uChar destiny;
 
-		for (Tbitmap destinations = attacks; destinations != 0; destinations = bitBoardOperations::remainder(destinations)) {
+		for (Tbitmap destinations = bitBoard.attacks; destinations != 0; destinations = bitBoardOperations::remainder(destinations)) {
 			destiny = bitBoardOperations::getSquareFromBitmap(destinations);
 
 			BitBoard clone(bitBoard);
@@ -88,19 +80,20 @@ private:
 
 			generateAttacks(clone, bitBoardOperations::getOtherColor(colorPiece), false);
 			if (bitBoardOperations::isKingCheck(clone, colorPiece))
-				attacks = bitBoardOperations::unsetIntersections(attacks, bitBoardOperations::getBitmapFromSquare(destiny));
+				bitBoard.attacks = bitBoardOperations::unsetIntersections(bitBoard.attacks, bitBoardOperations::getBitmapFromSquare(destiny));
 		}
 	}
 
 	//tenta fazer o movimento roque
-	void tryToMakeCastle(BitBoard& bitBoard, const uChar& namePiece, const uChar& colorPiece, Tbitmap& attacks) const {
+	void tryToMakeCastle(BitBoard& bitBoard, const uChar& namePiece, const uChar& colorPiece) const {
 		if (namePiece == KING) {
+			Tbitmap attacks = bitBoard.attacks;
 			generateAttacks(bitBoard, bitBoardOperations::getOtherColor(colorPiece), false);
 			if (canMakeSmallCastle(bitBoard, colorPiece))
 				attacks = bitBoardOperations::getUnion(attacks, bitBoard.bitMaps[namePiece][colorPiece] << 2);
 			if (canMakeBigCastle(bitBoard, colorPiece))
 				attacks = bitBoardOperations::getUnion(attacks, bitBoard.bitMaps[namePiece][colorPiece] >> 2);
-			bitBoard.attacks = 0;
+			bitBoard.attacks = attacks;
 		}
 	}
 
@@ -120,5 +113,5 @@ private:
 				if (king::isPathBigRookClear(bitBoard, color))
 					return !bitBoardOperations::isKingCheck(bitBoard, color);
 		return false;
-	}	
+	}
 };

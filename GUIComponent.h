@@ -9,6 +9,7 @@ namespace gui {
 	public:
 		Component(Component&) = delete;
 		Component& operator=(Component&) = delete;
+
 		Component() = default;
 		virtual ~Component() {}
 
@@ -27,7 +28,11 @@ namespace gui {
 
 	public:
 		Label() : Component(), text("label"), textColor(olc::BLACK), scale(1) {}
-		explicit Label(const std::string& text, olc::Pixel textColor = olc::BLACK, uint8_t scale = 1) : Component(), text(text), textColor(textColor), scale(scale) {}
+		explicit Label(const std::string& text, olc::Pixel textColor = olc::BLACK, uint8_t scale = 1) : 
+			Component(), 
+			text(text), 
+			textColor(textColor), 
+			scale(scale) {}
 		~Label() {}
 
 		void onUserUpdate(olc::PixelGameEngine& olc, float elapsedTime, const olc::vi2d& screenOffset) override {
@@ -56,7 +61,10 @@ namespace gui {
 		olc::Sprite* image = nullptr;
 
 	public:
-		Button(const Button& other) : Label(other.getText(), other.getTextColor(), other.getScale()), backgroundColor(other.getBackgroundColor()), highLightColor(other.getHighLightColor()), mousePressed(other.isMousePressed()) {}
+		Button(const Button& other) : 
+			Label(other.getText(), other.getTextColor(), other.getScale()), 
+			backgroundColor(other.getBackgroundColor()), highLightColor(other.getHighLightColor()), 
+			mousePressed(other.isMousePressed()) {}
 		Button() : Label("button") {}
 		explicit Button(const std::string& text, uint8_t scale = 1) : Label(text, olc::BLACK, scale) {}
 		~Button() { image = nullptr; }
@@ -124,7 +132,10 @@ namespace gui {
 
 	public:
 		MessageBox() : Component(), backgroudColor(olc::DARK_GREY), title("Table", olc::BLACK) {}
-		explicit MessageBox(const std::string& title, olc::Pixel backgroudColor = olc::DARK_GREY, uint8_t scale = 1) : Component(), backgroudColor(backgroudColor), title(title, olc::BLACK, scale) {}
+		explicit MessageBox(const std::string& title, olc::Pixel backgroudColor = olc::DARK_GREY, uint8_t scale = 1) : 
+			Component(), 
+			backgroudColor(backgroudColor), 
+			title(title, olc::BLACK, scale) {}
 		~MessageBox() {
 			title.setText("");
 			buttons.clear();

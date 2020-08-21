@@ -2,7 +2,7 @@
 #include "BitBoardOperations.h"
 
 namespace king {
-	const Tbitmap getMoves(const BitBoard& bitBoard, const uChar& square) {
+	const Tbitmap getMoves(const uChar& square) {
 		const Tbitmap bitmapKing = bitBoardOperations::getBitmapFromSquare(square);
 
 		//casas acima e abaixo do rei

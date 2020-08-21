@@ -2,8 +2,7 @@
 #include "BitBoardOperations.h"
 
 namespace rook {
-	const Tbitmap getMoves(const BitBoard& bitBoard, const uChar& square) {
-		const Tbitmap allPieces = bitBoardOperations::allPieces(bitBoard);
+	const Tbitmap getMoves(const Tbitmap& allPieces, const uChar& square) {
 		const Tbitmap bitmapRook = bitBoardOperations::getBitmapFromSquare(square);
 		const uChar file = bitBoardOperations::getFileFromSquare(square);
 		const uChar rank = bitBoardOperations::getRankFromSquare(square);
@@ -12,7 +11,7 @@ namespace rook {
 		Tbitmap aux2 = bitBoardOperations::reverse(allPieces) - 2 * bitBoardOperations::reverse(bitmapRook);
 		const Tbitmap hMoves = (aux1 ^ bitBoardOperations::reverse(aux2)) & RANKS[rank];
 
-		aux1 = (allPieces & FILES[file]) - (2 * bitmapRook);
+		aux1 = (allPieces & FILES[file]) - 2 * bitmapRook;
 		aux2 = bitBoardOperations::reverse(allPieces & FILES[file]) - 2 * bitBoardOperations::reverse(bitmapRook);
 		const Tbitmap vMoves = (aux1 ^ bitBoardOperations::reverse(aux2)) & FILES[file];
 

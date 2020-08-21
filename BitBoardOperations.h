@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include <optional>
 
 namespace bitBoardOperations {
 	inline const uChar createPiece(const uChar pieceName, const uChar colorPiece) {

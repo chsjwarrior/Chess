@@ -2,8 +2,7 @@
 #include "BitBoardOperations.h"
 
 namespace bishop {
-	const Tbitmap getMoves(const BitBoard& bitBoard, const uChar& square) {
-		const Tbitmap allPieces = bitBoardOperations::allPieces(bitBoard);
+	const Tbitmap getMoves(const Tbitmap& allPieces, const uChar& square) {
 		const Tbitmap bitmapBishop = bitBoardOperations::getBitmapFromSquare(square);
 		const uChar file = bitBoardOperations::getFileFromSquare(square);
 		const uChar rank = bitBoardOperations::getRankFromSquare(square);
