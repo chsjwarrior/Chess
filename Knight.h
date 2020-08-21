@@ -1,20 +1,19 @@
 #pragma once
-#include "BitBoard.h"
 #include "BitBoardOperations.h"
 
 namespace knight {
-    const uint64_t getMoves(const BitBoard& bitBoard, const uint8_t& square) {
-		const uint64_t& bitmapKnight = bitBoardOperations::getBitmapFromSquare(square);
+	const Tbitmap getMoves(const BitBoard& bitBoard, const uChar& square) {
+		const Tbitmap& bitmapKnight = bitBoardOperations::getBitmapFromSquare(square);
 
-		uint64_t moves = bitmapKnight << 10 & ~(bitBoardOperations::FILE_A | bitBoardOperations::FILE_B);
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight << 17 & ~bitBoardOperations::FILE_A);
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight << 6 & ~(bitBoardOperations::FILE_G | bitBoardOperations::FILE_H));
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight << 15 & ~bitBoardOperations::FILE_H);
+		Tbitmap moves = bitmapKnight << 10 & ~(FILE_A | FILE_B);
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight << 17 & ~FILE_A);
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight << 6 & ~(FILE_G | FILE_H));
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight << 15 & ~FILE_H);
 
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 10 & ~(bitBoardOperations::FILE_G | bitBoardOperations::FILE_H));
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 17 & ~bitBoardOperations::FILE_H);
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 6 & ~(bitBoardOperations::FILE_A | bitBoardOperations::FILE_B));
-		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 15 & ~bitBoardOperations::FILE_A);
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 10 & ~(FILE_G | FILE_H));
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 17 & ~FILE_H);
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 6 & ~(FILE_A | FILE_B));
+		moves = bitBoardOperations::getUnion(moves, bitmapKnight >> 15 & ~FILE_A);
 
 		return moves;
 	}

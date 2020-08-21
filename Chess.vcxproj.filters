@@ -19,9 +19,6 @@
     <ClInclude Include="Bishop.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="BitBoard.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="BitBoardOperations.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
@@ -43,9 +40,6 @@
     <ClInclude Include="Pawn.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="Piece.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="Rook.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
@@ -59,6 +53,9 @@
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="BoardGUI.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="Types.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
   </ItemGroup>

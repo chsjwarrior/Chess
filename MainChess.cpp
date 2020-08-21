@@ -88,13 +88,13 @@ public:
 			if (box["Brancas"].isMousePressed()) {
 				while (!stack.empty()) stack.pop();
 				stack.push(GAME_STATE::PLAYING);
-				board.startNewGame(Piece::Color::WHITE);
+				board.startNewGame(WHITE);
 				box.clear();
 			}
 			else if (box["Negras"].isMousePressed()) {
 				while (!stack.empty()) stack.pop();
 				stack.push(GAME_STATE::PLAYING);
-				board.startNewGame(Piece::Color::BLACK);
+				board.startNewGame(BLACK);
 				box.clear();
 			}
 			else if (box["cancelar"].isMousePressed()) {

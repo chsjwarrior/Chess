@@ -154,7 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bishop.h" />
-    <ClInclude Include="BitBoard.h" />
+    <ClInclude Include="Types.h" />
     <ClInclude Include="BitBoardOperations.h" />
     <ClInclude Include="BoardGUI.h" />
     <ClInclude Include="Evaluator.h" />
@@ -166,7 +166,6 @@
     <ClInclude Include="olcPixelGameEngine.h" />
     <ClInclude Include="GUIComponent.h" />
     <ClInclude Include="Pawn.h" />
-    <ClInclude Include="Piece.h" />
     <ClInclude Include="Rook.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

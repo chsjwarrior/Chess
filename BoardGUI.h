@@ -1,6 +1,5 @@
 #pragma once
 #include "GameBehavior.h"
-#include "BitBoard.h"
 #include "BitBoardOperations.h"
 #include "MoveGenerator.h"
 
@@ -10,16 +9,22 @@ private:
 	const uint32_t BORDER_SIZE = 25;
 	const uint32_t BOARD_SIZE = 8 * 55;
 
+	struct Piece {
+		explicit Piece(const uChar piece) : piece(piece) {}
+		const uChar name() const { return bitBoardOperations::getPieceName(piece); }
+		const uChar color() const { return bitBoardOperations::getPieceColor(piece); }
+	private:
+		uChar piece;
+	};
+
 	struct Position {
-		uint8_t square;
-		uint8_t getFile() { return bitBoardOperations::getFileFromSquare(square); }
-		uint8_t getRank() { return bitBoardOperations::getRankFromSquare(square); }
-		void invert() { square = 8 * (7 - getRank()) + getFile(); }
+		uChar square;
+		const uChar getFile() const { return bitBoardOperations::getFileFromSquare(square); }
+		const uChar getRank() const { return bitBoardOperations::getRankFromSquare(square); }
+		void invert() { square = uChar(8 * (7 - getRank()) + getFile()); }
 	} position;
 
 	int boardLayer;
-
-	bool whiteTime, checkMate;
 
 	olc::Decal* pieces;
 
@@ -45,22 +50,19 @@ private:
 		return value * CELL_SIZE.x + BORDER_SIZE;
 	}
 
-	inline const bool isColorTime(const Piece::Color& pieceColor) const {
-		return (whiteTime && pieceColor == Piece::Color::WHITE) || (!whiteTime && pieceColor == Piece::Color::BLACK);
+	inline const bool isColorTime(const uChar& pieceColor) const {
+		return (bitBoard.whiteTime && pieceColor == WHITE) || (!bitBoard.whiteTime && pieceColor == BLACK);
 	}
 	//0======================================================================0
 public:
 	BoardGUI() : GameBehavior(),
+		position(),
 		boardLayer(0),
-		whiteTime(false),
-		checkMate(true),
 		pieces(nullptr),
 		selected(std::nullopt),
 		movePiece(std::nullopt) {}
 	~BoardGUI() {
 		boardLayer = 0;
-		whiteTime = false;
-		checkMate = whiteTime;
 		if (pieces != nullptr)
 			delete pieces;
 		pieces = nullptr;
@@ -69,18 +71,15 @@ public:
 		board.clear();
 	}
 
-	void startNewGame(Piece::Color playerColor) {
+	void startNewGame(uChar playerColor) {
 		bitBoardOperations::setInitialPosition(bitBoard);
 
 		board.clear();
-		for (uint8_t i = 0; i < 64; i++) {
-			std::optional<Piece> piece = bitBoardOperations::getPieceFromSquare(bitBoard, i);
-			if (piece.has_value())
-				board.emplace(i, piece.value());
+		for (uChar i = 0, piece = 0; i < 64; ++i) {
+			piece = bitBoardOperations::getPieceFromSquare(bitBoard, i);			
+			if (piece != NONE_PIECE)
+				board.emplace(i, piece);
 		}
-
-		whiteTime = true;
-		checkMate = false;
 
 		lastMove = std::make_pair(olc::vu2d(), olc::vu2d());
 
@@ -144,7 +143,7 @@ public:
 			position.invert();
 			point.x = positionToPoint(position.getFile());
 			point.y = positionToPoint(position.getRank());
-			olc::vu2d aux(((uint8_t)it->second.NAME * CELL_SIZE.x) + ((uint8_t)it->second.COLOR * CELL_SIZE.y * 6), 0);
+			olc::vu2d aux((it->second.name() * CELL_SIZE.x) + (it->second.color() * CELL_SIZE.y * 6), 0);
 			olc.DrawPartialDecal(point, CELL_SIZE, pieces, aux, CELL_SIZE);
 		}
 
@@ -157,7 +156,7 @@ public:
 		}
 
 		if (movePiece.has_value()) {
-			point.x = ((uint8_t)movePiece->second.NAME * CELL_SIZE.x) + ((uint8_t)movePiece->second.COLOR * CELL_SIZE.y * 6);
+			point.x = (movePiece->second.name() * CELL_SIZE.x) + (movePiece->second.color() * CELL_SIZE.y * 6);
 			point.y = 0;
 			olc.DrawPartialDecal(movePiece->first, CELL_SIZE, pieces, point, CELL_SIZE);
 
@@ -180,7 +179,10 @@ public:
 
 				movePiece.reset();
 
-				std::cout << bitBoard;
+
+				bitBoardOperations::printBitmap("BitBoard:", bitBoardOperations::allPieces(bitBoard));
+				bitBoardOperations::printBitmap("Flags:", bitBoard.flags);
+				bitBoardOperations::printBitmap("Attacks:", bitBoard.attacks);
 			}
 		}
 		else {
@@ -200,7 +202,7 @@ public:
 						auto it = board.find(position.square);
 						if (it != board.cend()) {
 							MoveGenerator moveGenerator;
-							if (moveGenerator.hasPossibleMoves(bitBoard, (uint8_t)it->second.NAME, (uint8_t)it->second.COLOR, position.square)) {
+							if (moveGenerator.hasPossibleMoves(bitBoard, (uint8_t)it->second.name(), (uint8_t)it->second.color(), position.square)) {
 								position.invert();
 								selected.emplace(position.square);
 							}
