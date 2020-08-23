@@ -2,31 +2,31 @@
 #include "BitBoardOperations.h"
 
 namespace king {
-	const Tbitmap getMoves(const uChar& square) {
-		const Tbitmap bitmapKing = bitBoardOperations::getBitmapFromSquare(square);
+	const Bitmap getMoves(const Square square) {
+		const Bitmap bitmapKing = bitBoardOperations::getBitmapOfSquare(square);
 
 		//casas acima e abaixo do rei
-		Tbitmap moves = bitBoardOperations::getUnion(bitmapKing << 8, bitmapKing >> 8);
+		Bitmap moves = bitBoardOperations::getUnion(bitmapKing << 8, bitmapKing >> 8);
 		//casas a direita do rei
-		moves = bitBoardOperations::getUnion(moves, bitmapKing << 1 & ~FILE_A);
-		moves = bitBoardOperations::getUnion(moves, bitmapKing << 9 & ~FILE_A);
-		moves = bitBoardOperations::getUnion(moves, bitmapKing << 7 & ~FILE_H);
+		moves = bitBoardOperations::getUnion(moves, bitmapKing << 1 & ~FILES[FILE_A]);
+		moves = bitBoardOperations::getUnion(moves, bitmapKing << 9 & ~FILES[FILE_A]);
+		moves = bitBoardOperations::getUnion(moves, bitmapKing << 7 & ~FILES[FILE_H]);
 		//casas a esquerda do rei
-		moves = bitBoardOperations::getUnion(moves, bitmapKing >> 1 & ~FILE_H);
-		moves = bitBoardOperations::getUnion(moves, bitmapKing >> 9 & ~FILE_H);
-		moves = bitBoardOperations::getUnion(moves, bitmapKing >> 7 & ~FILE_A);
+		moves = bitBoardOperations::getUnion(moves, bitmapKing >> 1 & ~FILES[FILE_H]);
+		moves = bitBoardOperations::getUnion(moves, bitmapKing >> 9 & ~FILES[FILE_H]);
+		moves = bitBoardOperations::getUnion(moves, bitmapKing >> 7 & ~FILES[FILE_A]);
 
 		return moves;
 	}
 
-	const bool wasKingMoved(const BitBoard& bitBoard, const uChar& colorKing) {
-		return !bitBoardOperations::hasIntersection(bitBoard.flags, INITIAL_POSITION[KING][colorKing]);
+	const bool wasKingMoved(const BitBoard& bitBoard, const Color color) {
+		return !bitBoardOperations::hasIntersection(bitBoard.flags, INITIAL_POSITION[KING][color]);
 	}
 
 	/* Este método verifica se as casas do castelo do rei estão livres */
-	const bool isPathSmallRookClear(const BitBoard& bitBoard, const uChar color) {
-		const Tbitmap allPieces = bitBoardOperations::allPieces(bitBoard);
-		const Tbitmap kingBitmap = INITIAL_POSITION[KING][color];
+	const bool isPathSmallRookClear(const BitBoard& bitBoard, const Color color) {
+		const Bitmap allPieces = bitBoardOperations::allPieces(bitBoard);
+		const Bitmap kingBitmap = INITIAL_POSITION[KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap << 1))
 				if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 2))
@@ -35,9 +35,9 @@ namespace king {
 	}
 
 	/* Este método verifica se a as casas do castelo da dama estão livres */
-	const bool isPathBigRookClear(const BitBoard& bitBoard, const uChar color) {
-		const Tbitmap allPieces = bitBoardOperations::allPieces(bitBoard);
-		const Tbitmap kingBitmap = INITIAL_POSITION[KING][color];
+	const bool isPathBigRookClear(const BitBoard& bitBoard, const Color color) {
+		const Bitmap allPieces = bitBoardOperations::allPieces(bitBoard);
+		const Bitmap kingBitmap = INITIAL_POSITION[KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap >> 1))
 				if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 2))

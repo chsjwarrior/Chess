@@ -154,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bishop.h" />
+    <ClInclude Include="MinMax.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="BitBoardOperations.h" />
     <ClInclude Include="BoardGUI.h" />

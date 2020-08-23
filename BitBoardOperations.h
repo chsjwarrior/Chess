@@ -2,69 +2,64 @@
 #include "Types.h"
 
 namespace bitBoardOperations {
-	inline const uChar createPiece(const uChar pieceName, const uChar colorPiece) {
-		if (pieceName >= 6 || colorPiece >= 2)
+	inline const Piece makePiece(PieceType pieceType, Color color) {
+		if (pieceType >= 6 || color >= 2)
 			return NONE_PIECE;
-		return (colorPiece << 4) | pieceName;
+		return Piece((color << 4) | pieceType);
 	}
 
-	inline const uChar getPieceName(const uChar piece) {
-		return piece & 0x0F;
+	inline const PieceType getPieceTypeOfPiece(Piece piece) {
+		return PieceType(piece & 0x0F);
 	}
 
-	inline const uChar getPieceColor(const uChar color) {
-		return color >> 4;
+	inline const Color getColorOfPiece(Piece piece) {
+		return Color(piece >> 4);
 	}
 
-	inline const uChar getOtherColor(const uChar color) {
-		if (color == WHITE)
-			return BLACK;
-		return WHITE;
-	}
-
-	inline const bool hasIntersection(const Tbitmap bitmap1, const Tbitmap bitmap2) {
+	inline const bool hasIntersection(Bitmap bitmap1, Bitmap bitmap2) {
 		return (bitmap1 & bitmap2) != 0;
 	}
 
-	inline const Tbitmap getUnion(const Tbitmap bitmap1, const Tbitmap bitmap2) {
+	inline const Bitmap getUnion(Bitmap bitmap1, Bitmap bitmap2) {
 		return bitmap1 | bitmap2;
 	}
 
-	inline const Tbitmap getIntersections(const Tbitmap bitmap1, const Tbitmap bitmap2) {
+	inline const Bitmap getIntersections(Bitmap bitmap1, Bitmap bitmap2) {
 		return bitmap1 & bitmap2;
 	}
 
-	inline const Tbitmap unsetIntersections(const Tbitmap bitmap1, const Tbitmap bitmap2) {
+	inline const Bitmap unsetIntersections(Bitmap bitmap1, Bitmap bitmap2) {
 		return bitmap1 & ~bitmap2;
 	}
 
-	inline const Tbitmap remainder(const Tbitmap bitmap) {
+	inline const Bitmap remainder(Bitmap bitmap) {
 		return bitmap & (bitmap - 1);
 	}
 
-	inline const uChar getFileFromSquare(const uChar square) {
-		return square & 7;
+	inline const File getFileOfSquare(Square square) {
+		return File(square & 7);
 		// file = square % 8; ou file = square & 7;
 	}
 
-	inline const uChar getRankFromSquare(const uChar square) {
-		return square >> 3;
+	inline const Rank getRankOfSquare(Square square) {
+		return Rank(square >> 3);
 		// rank = square / 8; ou rank = square >> 3;
 	}
 
 	/* retornar um bitmap com um bit aceso */
-	inline const Tbitmap getBitmapFromSquare(const uChar square) {
+	inline const Bitmap getBitmapOfSquare(Square square) {
 		return SQUARE_MASK << square;
 	}
 
-	inline const uChar getSquareFromFileRank(const uint8_t file, const uChar rank) {
-		return 8 * rank + file;
+	inline const Square getSquareOfFileRank(File file, Rank rank) {
+		return Square((rank << 3) + file);
+		// 8 * rank + file;
 	}
 
 	/* retorna um int da posição a partir do primeiro bit aceso do bitmap */
-	const uChar getSquareFromBitmap(const Tbitmap bitmap) {
+	const Square getSquareOfBitmap(Bitmap bitmap) {
 		if (bitmap == 0)
-			return 64;
+			return NONE_SQUARE;
 		uInt x, y = (uInt)bitmap, n = 63;
 		if (y != 0) { n = n - 32; x = y; }
 		else x = (uInt)(bitmap >> 32);
@@ -72,10 +67,10 @@ namespace bitBoardOperations {
 		y = x << 8; if (y != 0) { n = n - 8; x = y; }
 		y = x << 4; if (y != 0) { n = n - 4; x = y; }
 		y = x << 2; if (y != 0) { n = n - 2; x = y; }
-		return n - ((x << 1) >> 31);
+		return static_cast<Square>(n - ((x << 1) >> 31));
 	}
 
-	const uChar bitCount(Tbitmap bitmap) {
+	const uChar bitCount(Bitmap bitmap) {
 		bitmap = ((bitmap >> 1) & 0x5555555555555555UL) + (bitmap & 0x5555555555555555UL);
 		bitmap = ((bitmap >> 2) & 0x3333333333333333UL) + (bitmap & 0x3333333333333333UL);
 		uInt v = (uInt)((bitmap >> 32) + bitmap);
@@ -84,7 +79,7 @@ namespace bitBoardOperations {
 		return ((v >> 16) & 0x0000FFFF) + (v & 0x0000FFFF);
 	}
 
-	const Tbitmap reverse(Tbitmap bitmap) {
+	const Bitmap reverse(Bitmap bitmap) {
 		bitmap = (bitmap & 0x5555555555555555L) << 1 | (bitmap >> 1) & 0x5555555555555555L;
 		bitmap = (bitmap & 0x3333333333333333L) << 2 | (bitmap >> 2) & 0x3333333333333333L;
 		bitmap = (bitmap & 0x0F0F0F0F0F0F0F0FL) << 4 | (bitmap >> 4) & 0x0F0F0F0F0F0F0F0FL;
@@ -109,93 +104,92 @@ namespace bitBoardOperations {
 	}
 
 	/* acende un bit no bitmap da peça */
-	void setPieceOnSquare(BitBoard& bitBoard, const uChar namePiece, const uChar colorPiece, const uChar square) {
-		bitBoard.bitMaps[namePiece][colorPiece] = getUnion(bitBoard.bitMaps[namePiece][colorPiece], getBitmapFromSquare(square));
+	void setPieceOnSquare(BitBoard& bitBoard, PieceType pieceType, Color color, Square square) {
+		bitBoard.bitMaps[pieceType][color] = getUnion(bitBoard.bitMaps[pieceType][color], getBitmapOfSquare(square));
 	}
 
 	/* apaga um bit no bitmap da peça */
-	void unsetPieceOnSquare(BitBoard& bitBoard, const uChar namePiece, const uChar colorpiece, const uChar square) {
-		bitBoard.bitMaps[namePiece][colorpiece] = unsetIntersections(bitBoard.bitMaps[namePiece][colorpiece], getBitmapFromSquare(square));
+	void unsetPieceOnSquare(BitBoard& bitBoard, PieceType pieceType, Color color, Square square) {
+		bitBoard.bitMaps[pieceType][color] = unsetIntersections(bitBoard.bitMaps[pieceType][color], getBitmapOfSquare(square));
 	}
 
 	/* procura por um bit aceso em todos os bitmaps, se estiver aceso gera uma peça */
-	const uChar getPieceFromSquare(const BitBoard& bitBoard, const uChar square) {
-		const uint64_t bitmap = getBitmapFromSquare(square);
+	const Piece getPieceFromSquare(BitBoard& bitBoard, Square square) {
+		const Bitmap bitmap = getBitmapOfSquare(square);
 
-		uChar piece = NONE_PIECE;
+		Piece piece = NONE_PIECE;
 
-		for (uChar namePiece = 0; namePiece < 6 && piece == NONE_PIECE; namePiece++)
-			if (hasIntersection(bitBoard.bitMaps[namePiece][0], bitmap))
-				piece = createPiece(namePiece, WHITE);
-			else if (hasIntersection(bitBoard.bitMaps[namePiece][1], bitmap))
-				piece = createPiece(namePiece, BLACK);
+		for (uChar pieceType = 0; pieceType < 6 && piece == NONE_PIECE; pieceType++)
+			if (hasIntersection(bitBoard.bitMaps[pieceType][WHITE], bitmap))
+				piece = makePiece(static_cast<PieceType>(pieceType), WHITE);
+			else if (hasIntersection(bitBoard.bitMaps[pieceType][BLACK], bitmap))
+				piece = makePiece(static_cast<PieceType>(pieceType), BLACK);
 
 		return piece;
 	}
 
-	const bool isSquareOccupied(const BitBoard& bitBoard, const uChar colorPiece, const uChar square) {
-		const uint64_t bitmap = getBitmapFromSquare(square);
+	const bool isSquareOccupied(BitBoard& bitBoard, Color color, Square square) {
+		const Bitmap bitmap = getBitmapOfSquare(square);
 
-		for (uint8_t namePiece = 0; namePiece < 6; namePiece++)
-			if (hasIntersection(bitBoard.bitMaps[namePiece][colorPiece], bitmap))
-				return true;
-		return false;
+		bool isOccupied = false;
+		for (uint8_t namePiece = 0; namePiece < 6 && isOccupied == false; namePiece++)
+			isOccupied = hasIntersection(bitBoard.bitMaps[namePiece][color], bitmap);
+
+		return isOccupied;
 	}
 
-	const bool isSquareAttacked(const BitBoard& bitBoard, const uChar square) {
-		return hasIntersection(bitBoard.attacks, getBitmapFromSquare(square));
+	const bool isSquareAttacked(BitBoard& bitBoard, Square square) {
+		return hasIntersection(bitBoard.attacks, getBitmapOfSquare(square));
 	}
 
-	const Tbitmap allPiecesColor(const BitBoard& bitBoard, uChar colorPiece) {
-		return bitBoard.bitMaps[0][colorPiece] | bitBoard.bitMaps[1][colorPiece] | bitBoard.bitMaps[2][colorPiece] |
-			bitBoard.bitMaps[3][colorPiece] | bitBoard.bitMaps[4][colorPiece] | bitBoard.bitMaps[5][colorPiece];
+	const Bitmap getBitmapAllPiecesByColor(BitBoard& bitBoard, Color color) {
+		return bitBoard.bitMaps[0][color] | bitBoard.bitMaps[1][color] | bitBoard.bitMaps[2][color] |
+			bitBoard.bitMaps[3][color] | bitBoard.bitMaps[4][color] | bitBoard.bitMaps[5][color];
 	}
 
-	const Tbitmap allPieces(const BitBoard& bitBoard) {
-		return allPiecesColor(bitBoard, WHITE) | allPiecesColor(bitBoard, BLACK);
+	const Bitmap getBitmapAllPieces(BitBoard& bitBoard) {
+		return getBitmapAllPiecesByColor(bitBoard, WHITE) | getBitmapAllPiecesByColor(bitBoard, BLACK);
 	}
 
-	const uChar getMoveFrom(const BitBoard& bitBoard) {
-		return bitBoard.move & 0xFF;
+	const Square getMoveFrom(BitBoard& bitBoard) {
+		return Square(bitBoard.move & 0xFF);
 	}
 
-	const uChar getMoveTo(const BitBoard& bitBoard) {
-		return (bitBoard.move >> 8) & 0xFF;
+	const Square getMoveTo(BitBoard& bitBoard) {
+		return Square((bitBoard.move >> 8) & 0xFF);
 	}
 
-	const uChar getCaptured(const BitBoard& bitBoard) {
-		uChar name = (bitBoard.move >> 16) & 0x0F;
-		uChar color = (bitBoard.move >> 16) & 0xF0;
-		return createPiece(name, color);
+	const Piece getCaptured(BitBoard& bitBoard) {
+		return Piece((bitBoard.move >> 16) & 0xFF);
 	}
 
-	const uint8_t isEnPassantCapture(const BitBoard& bitBoard) {
+	const bool isEnPassantCapture(BitBoard& bitBoard) {
 		return hasIntersection(bitBoard.move, 0x100000);
 	}
 
-	const bool isPawnPromotion(const BitBoard& bitBoard) {
+	const bool isPawnPromotion(BitBoard& bitBoard) {
 		return hasIntersection(bitBoard.move, 0x200000);
 	}
 
-	const bool& isSmallRook(const BitBoard& bitBoard, const uChar colorPiece) {
-		if (colorPiece == WHITE)
-			return hasIntersection(bitBoard.move >> 24, 0x1);
+	const bool& isSmallRook(BitBoard& bitBoard, Color color) {
+		if (color == WHITE)
+			return hasIntersection(bitBoard.move >> 28, 0x1);
 
-		return hasIntersection(bitBoard.move >> 24, 0x4);
+		return hasIntersection(bitBoard.move >> 28, 0x4);
 	}
 
-	const bool& isBigRook(const BitBoard& bitBoard, const uChar colorPiece) {
-		if (colorPiece == WHITE)
-			return hasIntersection(bitBoard.move >> 24, 0x2);
+	const bool& isBigRook(BitBoard& bitBoard, Color color) {
+		if (color == WHITE)
+			return hasIntersection(bitBoard.move >> 28, 0x2);
 
-		return hasIntersection(bitBoard.move >> 24, 0x8);
+		return hasIntersection(bitBoard.move >> 28, 0x8);
 	}
 
-	const bool isKingCheck(const BitBoard& bitBoard, const uChar colorKing) {
-		return bitBoardOperations::hasIntersection(bitBoard.attacks, bitBoard.bitMaps[KING][colorKing]);
+	const bool isKingCheck(BitBoard& bitBoard, Color color) {
+		return bitBoardOperations::hasIntersection(bitBoard.attacks, bitBoard.bitMaps[KING][color]);
 	}
 
-	void printBitmap(const char title[], const Tbitmap bitmap) {
+	void printBitmap(const char title[], Bitmap bitmap) {
 		std::cout << title << std::endl;
 		for (int r = 56; r >= 0; r = r - 8) {
 			for (int f = 0; f < 8; f++)

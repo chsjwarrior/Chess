@@ -13,26 +13,25 @@ private:
 
 	olc::Decal* pieces;
 
-	struct Piece {
-		uint8_t piece;
-		const uint8_t name() const { return bitBoardOperations::getPieceName(piece); }
-		const uint8_t color() const { return bitBoardOperations::getPieceColor(piece); }
+	struct SPiece {
+		Piece piece;
+		const PieceType type() const { return bitBoardOperations::getPieceTypeOfPiece(piece); }
+		const Color color() const { return bitBoardOperations::getColorOfPiece(piece); }
 	} piece;
 
 	struct Position {
-		uint8_t square;
-		const uint8_t getFile() const { return bitBoardOperations::getFileFromSquare(square); }
-		const uint8_t getRank() const { return bitBoardOperations::getRankFromSquare(square); }
-		void invert() { square = 8 * (7 - getRank()) + getFile(); }
+		Square square;
+		const File getFile() const { return bitBoardOperations::getFileOfSquare(square); }
+		const Rank getRank() const { return bitBoardOperations::getRankOfSquare(square); }
 	} position;
 
 	BitBoard bitBoard;
 
-	uint8_t selected;
+	Square selected;
 
 	std::pair<olc::vu2d, olc::vu2d> lastMove;
 
-	std::pair<olc::vf2d, uint8_t> movePiece;
+	std::pair<olc::vf2d, Piece> movePiece;
 
 	//0======================================================================0
 	inline const bool isMouseInsideBoard(const olc::vu2d& point) const {
@@ -53,7 +52,7 @@ private:
 	}
 	//0======================================================================0
 public:
-	BoardGUI() : GameBehavior(), boardLayer(NULL), pieces(nullptr), selected(NULL) {
+	BoardGUI() : GameBehavior(), boardLayer(NULL), pieces(nullptr), selected(NONE_SQUARE) {
 		piece.piece = NONE_PIECE;
 		position.square = NONE_SQUARE;
 	}
@@ -127,19 +126,19 @@ public:
 
 		for (uChar namePiece = 0; namePiece < 6; namePiece++)
 			for (uChar color = 0; color < 2; color++)
-				for (uint64_t bitmap = bitBoard.bitMaps[namePiece][color]; bitmap != 0; bitmap = bitBoardOperations::remainder(bitmap)) {
-					position.square = bitBoardOperations::getSquareFromBitmap(bitmap);
-					position.invert();
+				for (Bitmap bitmap = bitBoard.bitMaps[namePiece][color]; bitmap != 0; bitmap = bitBoardOperations::remainder(bitmap)) {
+					position.square = bitBoardOperations::getSquareOfBitmap(bitmap);
+					position.square = ~position.square;
 					point.x = positionToPoint(position.getFile());
 					point.y = positionToPoint(position.getRank());
-					piece.piece = bitBoardOperations::createPiece(namePiece, color);
-					olc::vu2d aux((piece.name() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6), 0);
+					piece.piece = bitBoardOperations::makePiece(static_cast<PieceType>(namePiece), static_cast<Color>(color));
+					olc::vu2d aux((piece.type() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6), 0);
 					olc.DrawPartialDecal(point, CELL_SIZE, pieces, aux, CELL_SIZE);
 				}
 
-		for (uint64_t attacks = bitBoard.attacks; attacks != 0; attacks = bitBoardOperations::remainder(attacks)) {
-			position.square = bitBoardOperations::getSquareFromBitmap(attacks);
-			position.invert();
+		for (Bitmap attacks = bitBoard.attacks; attacks != 0; attacks = bitBoardOperations::remainder(attacks)) {
+			position.square = bitBoardOperations::getSquareOfBitmap(attacks);
+			position.square = ~position.square;
 			point.x = positionToPoint(position.getFile());
 			point.y = positionToPoint(position.getRank());
 			olc.FillCircle(point.x + 26, point.y + 26, CELL_SIZE.x / 5, olc::YELLOW);
@@ -147,7 +146,7 @@ public:
 
 		if (movePiece.second != NONE_PIECE) {
 			piece.piece = movePiece.second;
-			point.x = (piece.name() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6);
+			point.x = (piece.type() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6);
 			point.y = 0;
 			olc.DrawPartialDecal(movePiece.first, CELL_SIZE, pieces, point, CELL_SIZE);
 
@@ -172,42 +171,31 @@ public:
 			if (isMouseInsideBoard(point)) {
 				point.x = pointToPosition(point.x);
 				point.y = pointToPosition(point.y);
-				position.square = bitBoardOperations::getSquareFromFileRank(point.x, point.y);
+				position.square = bitBoardOperations::getSquareOfFileRank(static_cast<File>(point.x), static_cast<Rank>(point.y));
 				point.x = positionToPoint(point.x);
 				point.y = positionToPoint(point.y);
 				olc.DrawRect(point, CELL_SIZE, olc::YELLOW);
 
 				if (olc.GetMouse(0).bPressed) {
-					position.invert();
 					if (selected == NONE_SQUARE) {
-						piece.piece = bitBoardOperations::getPieceFromSquare(bitBoard, position.square);
+						piece.piece = bitBoardOperations::getPieceFromSquare(bitBoard, ~position.square);
 						if (piece.piece != NONE_PIECE) {
 							MoveGenerator moveGenerator;
-							if (moveGenerator.hasPossibleMoves(bitBoard, piece.name(), piece.color(), position.square)) {
-								position.invert();
+							if (moveGenerator.hasPossibleMoves(bitBoard, piece.type(), piece.color(), ~position.square))
 								selected = position.square;
-							}
 						}
 					}
-					else if (bitBoardOperations::isSquareAttacked(bitBoard, position.square)) {
-						position.invert();
-						uint8_t destiny = position.square;
-
-						position.square = selected;
-						lastMove.first.x = positionToPoint(position.getFile());
-						lastMove.first.y = positionToPoint(position.getRank());
-						position.square = destiny;
+					else if (bitBoardOperations::isSquareAttacked(bitBoard, ~position.square)) {
+						lastMove.first.x = positionToPoint(bitBoardOperations::getFileOfSquare(selected));
+						lastMove.first.y = positionToPoint(bitBoardOperations::getRankOfSquare(selected));
+						//position.square = ~position.square;
 						lastMove.second.x = positionToPoint(position.getFile());
 						lastMove.second.y = positionToPoint(position.getRank());
-						position.invert();
-						destiny = position.square;
 
 						movePiece.first = lastMove.first;
-						position.square = selected;
-						position.invert();
-						movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, position.square);
-						
-						MoveMaker moveMaker(position.square, destiny);
+						movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, ~selected);
+
+						MoveMaker moveMaker(~selected, ~position.square);
 						moveMaker.makeMove(bitBoard);
 
 						selected = NONE_SQUARE;
