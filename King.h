@@ -2,7 +2,7 @@
 #include "BitBoardOperations.h"
 
 namespace king {
-	const Bitmap getMoves(const Square square) {
+	const Bitmap getMoves(Square square) {
 		const Bitmap bitmapKing = bitBoardOperations::getBitmapOfSquare(square);
 
 		//casas acima e abaixo do rei
@@ -25,7 +25,7 @@ namespace king {
 
 	/* Este método verifica se as casas do castelo do rei estão livres */
 	const bool isPathSmallRookClear(const BitBoard& bitBoard, const Color color) {
-		const Bitmap allPieces = bitBoardOperations::allPieces(bitBoard);
+		const Bitmap allPieces = bitBoardOperations::getBitmapAllPieces(bitBoard);
 		const Bitmap kingBitmap = INITIAL_POSITION[KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap << 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap << 1))
@@ -36,7 +36,7 @@ namespace king {
 
 	/* Este método verifica se a as casas do castelo da dama estão livres */
 	const bool isPathBigRookClear(const BitBoard& bitBoard, const Color color) {
-		const Bitmap allPieces = bitBoardOperations::allPieces(bitBoard);
+		const Bitmap allPieces = bitBoardOperations::getBitmapAllPieces(bitBoard);
 		const Bitmap kingBitmap = INITIAL_POSITION[KING][color];
 		if (!bitBoardOperations::hasIntersection(bitBoard.attacks, kingBitmap >> 1))
 			if (!bitBoardOperations::hasIntersection(allPieces, kingBitmap >> 1))

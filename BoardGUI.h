@@ -29,7 +29,7 @@ private:
 
 	Square selected;
 
-	std::pair<olc::vu2d, olc::vu2d> lastMove;
+	std::pair<olc::vf2d, olc::vf2d> lastMove;
 
 	std::pair<olc::vf2d, Piece> movePiece;
 
@@ -119,7 +119,7 @@ public:
 			olc.FillRect(point, CELL_SIZE, olc::YELLOW);
 		}
 
-		if (lastMove.first.x != lastMove.second.x && lastMove.first.y != lastMove.second.y) {
+		if (lastMove.first.x != lastMove.second.x || lastMove.first.y != lastMove.second.y) {
 			olc.DrawRect(lastMove.first, CELL_SIZE, olc::YELLOW);
 			olc.DrawRect(lastMove.second, CELL_SIZE, olc::YELLOW);
 		}
@@ -150,8 +150,8 @@ public:
 			point.y = 0;
 			olc.DrawPartialDecal(movePiece.first, CELL_SIZE, pieces, point, CELL_SIZE);
 
-			float deltaX = float(lastMove.second.x) - movePiece.first.x;
-			float deltaY = float(lastMove.second.y) - movePiece.first.y;
+			float deltaX = lastMove.second.x - movePiece.first.x;
+			float deltaY = lastMove.second.y - movePiece.first.y;
 			float distance = sqrtf(deltaX * deltaX + deltaY * deltaY);
 
 			movePiece.first.x += deltaX / distance;
@@ -160,7 +160,7 @@ public:
 			if (distance < 5) {
 				movePiece.second = NONE_PIECE;
 
-				bitBoardOperations::printBitmap("BitBoard:", bitBoardOperations::allPieces(bitBoard));
+				bitBoardOperations::printBitmap("BitBoard:", bitBoardOperations::getBitmapAllPieces(bitBoard));
 				bitBoardOperations::printBitmap("Flags:", bitBoard.flags);
 				bitBoardOperations::printBitmap("Attacks:", bitBoard.attacks);
 			}
@@ -177,25 +177,27 @@ public:
 				olc.DrawRect(point, CELL_SIZE, olc::YELLOW);
 
 				if (olc.GetMouse(0).bPressed) {
+					position.square = ~position.square;
 					if (selected == NONE_SQUARE) {
-						piece.piece = bitBoardOperations::getPieceFromSquare(bitBoard, ~position.square);
+						piece.piece = bitBoardOperations::getPieceFromSquare(bitBoard, position.square);
 						if (piece.piece != NONE_PIECE) {
 							MoveGenerator moveGenerator;
-							if (moveGenerator.hasPossibleMoves(bitBoard, piece.type(), piece.color(), ~position.square))
-								selected = position.square;
+							if (moveGenerator.hasPossibleMoves(bitBoard, piece.type(), piece.color(), position.square))
+								selected = ~position.square;
 						}
 					}
-					else if (bitBoardOperations::isSquareAttacked(bitBoard, ~position.square)) {
+					else if (bitBoardOperations::isSquareAttacked(bitBoard, position.square)) {
 						lastMove.first.x = positionToPoint(bitBoardOperations::getFileOfSquare(selected));
 						lastMove.first.y = positionToPoint(bitBoardOperations::getRankOfSquare(selected));
-						//position.square = ~position.square;
+						position.square = ~position.square;
 						lastMove.second.x = positionToPoint(position.getFile());
 						lastMove.second.y = positionToPoint(position.getRank());
 
+						selected = ~selected;
 						movePiece.first = lastMove.first;
-						movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, ~selected);
+						movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, selected);
 
-						MoveMaker moveMaker(~selected, ~position.square);
+						MoveMaker moveMaker(selected, ~position.square);
 						moveMaker.makeMove(bitBoard);
 
 						selected = NONE_SQUARE;

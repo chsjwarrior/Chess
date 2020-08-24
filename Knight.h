@@ -2,7 +2,7 @@
 #include "BitBoardOperations.h"
 
 namespace knight {
-	const Bitmap getMoves(const Square square) {
+	const Bitmap getMoves(Square square) {
 		const Bitmap& bitmapKnight = bitBoardOperations::getBitmapOfSquare(square);
 
 		Bitmap moves = bitmapKnight << 10 & ~(FILES[FILE_A] | FILES[FILE_B]);

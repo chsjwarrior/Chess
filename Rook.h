@@ -2,7 +2,7 @@
 #include "BitBoardOperations.h"
 
 namespace rook {
-	const Bitmap getMoves(const Bitmap& allPieces, const Square square) {
+	const Bitmap getMoves(Bitmap allPieces, Square square) {
 		const Bitmap bitmapRook = bitBoardOperations::getBitmapOfSquare(square);
 		const File file = bitBoardOperations::getFileOfSquare(square);
 		const Rank rank = bitBoardOperations::getRankOfSquare(square);

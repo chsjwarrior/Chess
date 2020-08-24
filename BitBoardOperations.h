@@ -114,7 +114,7 @@ namespace bitBoardOperations {
 	}
 
 	/* procura por um bit aceso em todos os bitmaps, se estiver aceso gera uma peça */
-	const Piece getPieceFromSquare(BitBoard& bitBoard, Square square) {
+	const Piece getPieceFromSquare(const BitBoard& bitBoard, Square square) {
 		const Bitmap bitmap = getBitmapOfSquare(square);
 
 		Piece piece = NONE_PIECE;
@@ -142,12 +142,12 @@ namespace bitBoardOperations {
 		return hasIntersection(bitBoard.attacks, getBitmapOfSquare(square));
 	}
 
-	const Bitmap getBitmapAllPiecesByColor(BitBoard& bitBoard, Color color) {
+	const Bitmap getBitmapAllPiecesByColor(const BitBoard& bitBoard, Color color) {
 		return bitBoard.bitMaps[0][color] | bitBoard.bitMaps[1][color] | bitBoard.bitMaps[2][color] |
 			bitBoard.bitMaps[3][color] | bitBoard.bitMaps[4][color] | bitBoard.bitMaps[5][color];
 	}
 
-	const Bitmap getBitmapAllPieces(BitBoard& bitBoard) {
+	const Bitmap getBitmapAllPieces(const BitBoard& bitBoard) {
 		return getBitmapAllPiecesByColor(bitBoard, WHITE) | getBitmapAllPiecesByColor(bitBoard, BLACK);
 	}
 
@@ -185,7 +185,7 @@ namespace bitBoardOperations {
 		return hasIntersection(bitBoard.move >> 28, 0x8);
 	}
 
-	const bool isKingCheck(BitBoard& bitBoard, Color color) {
+	const bool isKingCheck(const BitBoard& bitBoard, Color color) {
 		return bitBoardOperations::hasIntersection(bitBoard.attacks, bitBoard.bitMaps[KING][color]);
 	}
 
