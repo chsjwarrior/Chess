@@ -153,21 +153,18 @@
     <ClCompile Include="MainChess.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Bishop.h" />
+    <ClInclude Include="PiecesMove.h" />
+    <ClInclude Include="History.h" />
     <ClInclude Include="MinMax.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="BitBoardOperations.h" />
     <ClInclude Include="BoardGUI.h" />
     <ClInclude Include="Evaluator.h" />
-    <ClInclude Include="King.h" />
-    <ClInclude Include="Knight.h" />
     <ClInclude Include="MoveGenerator.h" />
     <ClInclude Include="MoveMaker.h" />
     <ClInclude Include="GameBehavior.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
     <ClInclude Include="GUIComponent.h" />
-    <ClInclude Include="Pawn.h" />
-    <ClInclude Include="Rook.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

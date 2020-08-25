@@ -98,7 +98,8 @@ namespace bitBoardOperations {
 		bitBoard.flags = bitBoard.bitMaps[KING][0] | bitBoard.bitMaps[KING][1] |
 			bitBoard.bitMaps[ROOK][0] | bitBoard.bitMaps[ROOK][1];
 		bitBoard.attacks = 0;
-		bitBoard.move = 0;
+		Bitmap hashKey = 0;
+		uShort moveCounter = 0;
 		bitBoard.whiteTime = true;
 		bitBoard.checkMate = false;
 	}
@@ -152,37 +153,106 @@ namespace bitBoardOperations {
 	}
 
 	const Square getMoveFrom(BitBoard& bitBoard) {
-		return Square(bitBoard.move & 0xFF);
+		return Square(bitBoard.move.move & 0x0FF);
 	}
 
 	const Square getMoveTo(BitBoard& bitBoard) {
-		return Square((bitBoard.move >> 8) & 0xFF);
+		return Square((bitBoard.move.move >> 8) & 0xFFU);
 	}
 
 	const Piece getCaptured(BitBoard& bitBoard) {
-		return Piece((bitBoard.move >> 16) & 0xFF);
+		return Piece((bitBoard.move.move >> 16) & 0xFFU);
 	}
 
 	const bool isEnPassantCapture(BitBoard& bitBoard) {
-		return hasIntersection(bitBoard.move, 0x100000);
+		return hasIntersection(bitBoard.move.move, 0x1000000U);
 	}
 
 	const bool isPawnPromotion(BitBoard& bitBoard) {
-		return hasIntersection(bitBoard.move, 0x200000);
+		return hasIntersection(bitBoard.move.move, 0x2000000U);
 	}
 
 	const bool& isSmallRook(BitBoard& bitBoard, Color color) {
 		if (color == WHITE)
-			return hasIntersection(bitBoard.move >> 28, 0x1);
+			return hasIntersection(bitBoard.move.move >> 28, 0x1U);
 
-		return hasIntersection(bitBoard.move >> 28, 0x4);
+		return hasIntersection(bitBoard.move.move >> 28, 0x4U);
 	}
 
 	const bool& isBigRook(BitBoard& bitBoard, Color color) {
 		if (color == WHITE)
-			return hasIntersection(bitBoard.move >> 28, 0x2);
+			return hasIntersection(bitBoard.move.move >> 28, 0x2U);
 
-		return hasIntersection(bitBoard.move >> 28, 0x8);
+		return hasIntersection(bitBoard.move.move >> 28, 0x8U);
+	}
+
+	const void parseFEN(BitBoard& bitBoard, const char* fen) {
+		File file = FILE_A;
+		Rank rank = RANK_8;
+		uShort count = 0;
+		Piece piece;
+
+		while ((rank >= RANK_1) && *fen) {
+			count = 1;
+			switch (*fen) {
+				case 'p': piece = BLACK_PAWN; break;
+				case 'r': piece = BLACK_ROOK; break;
+				case 'n': piece = BLACK_KNIGHT; break;
+				case 'b': piece = BLACK_BISHOP; break;
+				case 'k': piece = BLACK_KING; break;
+				case 'q': piece = BLACK_QUEEN; break;
+				case 'P': piece = WHITE_PAWN; break;
+				case 'R': piece = WHITE_ROOK; break;
+				case 'N': piece = WHITE_KNIGHT; break;
+				case 'B': piece = WHITE_BISHOP; break;
+				case 'K': piece = WHITE_KING; break;
+				case 'Q': piece = WHITE_QUEEN; break;
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+					piece = NONE_PIECE;
+					count = *fen - '0';
+					break;
+				case '/':
+				case ' ':
+					rank = static_cast<Rank>(static_cast<uChar>(rank) - 1);
+					file = FILE_A;
+					fen++;
+					continue;
+				default:
+					std::cout << "FEN Error!" << std::endl;
+					return;
+			}
+
+			for (uChar i = 0; i < count; i++) {
+				if (piece != NONE_PIECE)
+					setPieceOnSquare(bitBoard, getPieceTypeOfPiece(piece), getColorOfPiece(piece), getSquareOfFileRank(file, rank));
+				file = static_cast<File>(static_cast<uChar>(file) + 1);
+			}
+			fen++;
+		}
+
+		bitBoard.whiteTime = *fen == 'w';
+		fen += 2;
+
+		bitBoard.flags = INITIAL_POSITION[KING][0] | INITIAL_POSITION[KING][1] |
+			INITIAL_POSITION[ROOK][0] | INITIAL_POSITION[ROOK][1];
+
+		for (uShort i = 0; i < 4; i++) {
+			if (*fen == ' ') break;
+			switch (*fen) {
+				case 'K':
+				case 'Q': bitBoard.flags = unsetIntersections(bitBoard.flags, RANKS[RANK_1]); break;
+				case 'k':
+				case 'q': bitBoard.flags = unsetIntersections(bitBoard.flags, RANKS[RANK_8]);
+			}
+			fen++;
+		}
 	}
 
 	const bool isKingCheck(const BitBoard& bitBoard, Color color) {
@@ -191,6 +261,7 @@ namespace bitBoardOperations {
 
 	void printBitmap(const char title[], Bitmap bitmap) {
 		std::cout << title << std::endl;
+
 		for (int r = 56; r >= 0; r = r - 8) {
 			for (int f = 0; f < 8; f++)
 				if ((bitmap >> (r + f) & 1) != 0)

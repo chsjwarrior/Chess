@@ -25,9 +25,13 @@ constexpr Bitmap INITIAL_POSITION[6][2] = {{ RANKS[1], RANKS[6] }, { 0x000000000
 											{ 0x0000000000000024UL, 0x2400000000000000UL  }, { 0x0000000000000081UL, 0x8100000000000000UL },
 											{ 0x0000000000000008UL, 0x0800000000000000UL }, { 0x0000000000000010UL, 0x1000000000000000UL }};
 
+constexpr Bitmap PATH_SMALL_ROOK = 0x6000000000000060UL;
+
+constexpr Bitmap PATH_BIG_ROOK = 0x0E0000000000000EUL;
+
 constexpr Bitmap SQUARE_MASK = 0x1UL;
 
-constexpr uInt MOVE_CLEAR = 0x00FFFF4040;   
+constexpr uInt MOVE_CLEAR = 0x00FFFF4040;
 
 enum File : uChar { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, NONE_FILE };
 
@@ -41,7 +45,8 @@ enum Square : uChar {
 	A5, B5, C5, D5, E5, F5, G5, H5,
 	A6, B6, C6, D6, E6, F6, G6, H6,
 	A7, B7, C7, D7, E7, F7, G7, H7,
-	A8, B8, C8, D8, E8, F8, G8, H8, NONE_SQUARE //= 0X40 = 64
+	A8, B8, C8, D8, E8, F8, G8, H8,
+	NONE_SQUARE //= 0X40 = 64
 };
 
 enum Color : uChar { WHITE, BLACK };
@@ -72,11 +77,9 @@ enum Piece : uChar {
 	NONE_PIECE = 0xFF
 };
 
-struct BitBoard {
-	Bitmap bitMaps[6][2] = {0};
-	Bitmap flags = 0;
-	Bitmap attacks = 0;
+struct Move {
 	uInt move = 0;
+	uInt score = 0;
 	/* move uint32_t
 	00000000 00000000 00000000 11111111 from 0xFF;
 	00000000 00000000 11111111 00000000 to 0xFF << 8;
@@ -85,18 +88,28 @@ struct BitBoard {
 	00000010 00000000 00000000 00000000 is pawn promotion 0x2000000;
 	11110000 00000000 00000000 00000000 castle key 0xF0 << 28;
 	*/
+};
+
+struct BitBoard {
+	Bitmap bitMaps[6][2] = {0};
+	Bitmap flags = 0;
+	Bitmap attacks = 0;	
+	uShort moveCounter = 0;
+
 	bool whiteTime = false;
 	bool checkMate = true;
+
+	Move move;
 
 	BitBoard() = default;
 };
 
-constexpr File operator~(File other) { return File(other ^ FILE_H); }
+constexpr inline File operator~(const File& file) { return File(file ^ File::FILE_H); }
 
-constexpr Rank operator~(Rank other) { return Rank(other ^ RANK_8); }
+constexpr inline Rank operator~(const Rank& rank) { return Rank(rank ^ Rank::RANK_8); }
 
-constexpr Square operator~(Square other) { return Square(other ^ A8); }
+constexpr inline Square operator~(const Square& square) { return Square(square ^ Square::A8); }
 
-constexpr Color operator~(Color other) { return Color(other ^ BLACK); }
+constexpr inline Color operator~(const Color& color) { return Color(color ^ Color::BLACK); }
 
-constexpr Piece operator~(Piece other) { return Piece(other ^ 0xF0); }
+constexpr inline Piece operator~(const Piece& piece) { return Piece(piece ^ 0xF0); }

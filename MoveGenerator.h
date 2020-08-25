@@ -1,9 +1,5 @@
 #pragma once
-#include "Pawn.h"
-#include "Knight.h"
-#include "Bishop.h"
-#include "Rook.h"
-#include "King.h"
+#include "PiecesMove.h"
 #include "MoveMaker.h"
 
 class MoveGenerator {
@@ -47,29 +43,29 @@ private:
 	void generateMoves(BitBoard& bitBoard, PieceType pieceType, Color color, Square square) const {
 		switch (pieceType) {
 			case PAWN:
-				bitBoard.attacks = pawn::getMoves(bitBoardOperations::getBitmapAllPieces(bitBoard), color, bitBoard.flags & (RANKS[RANK_4] | RANKS[RANK_5]), square);
+				bitBoard.attacks = pieceMoves::getPawnMoves(bitBoardOperations::getBitmapAllPieces(bitBoard), color, bitBoard.flags & (RANKS[RANK_4] | RANKS[RANK_5]), square);
 				break;
 			case KNIGHT:
-				bitBoard.attacks = knight::getMoves(square);
+				bitBoard.attacks = pieceMoves::getKnightMoves(square);
 				break;
 			case BISHOP:
-				bitBoard.attacks = bishop::getMoves(bitBoardOperations::getBitmapAllPieces(bitBoard), square);
+				bitBoard.attacks = pieceMoves::getBishopMoves(bitBoardOperations::getBitmapAllPieces(bitBoard), square);
 				break;
 			case ROOK:
-				bitBoard.attacks = rook::getMoves(bitBoardOperations::getBitmapAllPieces(bitBoard), square);
+				bitBoard.attacks = pieceMoves::getRookMoves(bitBoardOperations::getBitmapAllPieces(bitBoard), square);
 				break;
 			case QUEEN: {
 				const Bitmap allPiece = bitBoardOperations::getBitmapAllPieces(bitBoard);
-				bitBoard.attacks = bishop::getMoves(allPiece, square) | rook::getMoves(allPiece, square);
+				bitBoard.attacks = pieceMoves::getBishopMoves(allPiece, square) | pieceMoves::getRookMoves(allPiece, square);
 				break;
 			}
 			case KING:
-				bitBoard.attacks = king::getMoves(square);
+				bitBoard.attacks = pieceMoves::getKingMoves(square);
 		}
 		bitBoard.attacks = bitBoardOperations::unsetIntersections(bitBoard.attacks, bitBoardOperations::getBitmapAllPiecesByColor(bitBoard, color));
 	}
 
-	//tenta mover a peça
+	//tenta mover a peça sem colocar o rei em xeque
 	void tryToMakeMove(BitBoard& bitBoard, PieceType pieceType, Color color, Square origin) const {
 		Square destiny;
 		for (Bitmap destinations = bitBoard.attacks; destinations != 0; destinations = bitBoardOperations::remainder(destinations)) {
@@ -85,7 +81,7 @@ private:
 		}
 	}
 
-	//tenta fazer o movimento roque
+	//tenta fazer o movimento do roque
 	void tryToMakeCastle(BitBoard& bitBoard, PieceType pieceType, Color color) const {
 		if (pieceType == KING) {
 			Bitmap attacks = bitBoard.attacks;
@@ -100,19 +96,31 @@ private:
 
 	//este metodo verifica se o rei pode fazer o castelo
 	const bool canMakeSmallCastle(const BitBoard& bitBoard, Color color) const {
-		if (!king::wasKingMoved(bitBoard, color))
-			if (!rook::wasSmallRookMoved(bitBoard, color))
-				if (king::isPathSmallRookClear(bitBoard, color))
-					return !bitBoardOperations::isKingCheck(bitBoard, color);
+		if (bitBoardOperations::hasIntersection(bitBoard.flags, INITIAL_POSITION[KING][color])) {//wasKingNotMoved
+			Square rookInitialSquare = color == WHITE ? H1 : H8;
+			if (bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapOfSquare(rookInitialSquare))) {//wasSmallRookNotMoved
+				const Bitmap relativeRank[2] = {RANKS[RANK_1], RANKS[RANK_8]};//isPathSmallRookClear
+				const Bitmap allPieces = bitBoardOperations::getBitmapAllPieces(bitBoard);
+				if (!bitBoardOperations::hasIntersection(bitBoardOperations::getIntersections(PATH_SMALL_ROOK, relativeRank[color]), allPieces))
+					if (!bitBoardOperations::hasIntersection(bitBoardOperations::getIntersections(PATH_SMALL_ROOK, relativeRank[color]), bitBoard.attacks))
+						return !bitBoardOperations::isKingCheck(bitBoard, color);
+			}
+		}
 		return false;
 	}
 
 	//este metodo verifica se o rei pode fazer o castelo
 	const bool canMakeBigCastle(const BitBoard& bitBoard, Color color) const {
-		if (!king::wasKingMoved(bitBoard, color))
-			if (!rook::wasBigRookMoved(bitBoard, color))
-				if (king::isPathBigRookClear(bitBoard, color))
-					return !bitBoardOperations::isKingCheck(bitBoard, color);
+		if (bitBoardOperations::hasIntersection(bitBoard.flags, INITIAL_POSITION[KING][color])) {//wasKingNotMoved
+			Square rookInitialSquare = color == WHITE ? A1 : A8;
+			if (bitBoardOperations::hasIntersection(bitBoard.flags, bitBoardOperations::getBitmapOfSquare(rookInitialSquare))) {//wasBigRookNotMoved
+				const Bitmap relativeRank[2] = {RANKS[RANK_1], RANKS[RANK_8]};//isPathBigRookClear
+				const Bitmap allPieces = bitBoardOperations::getBitmapAllPieces(bitBoard);
+				if (!bitBoardOperations::hasIntersection(bitBoardOperations::getIntersections(PATH_BIG_ROOK, relativeRank[color]), allPieces))
+					if (!bitBoardOperations::hasIntersection(bitBoardOperations::getIntersections(PATH_BIG_ROOK, relativeRank[color]), bitBoard.attacks))
+						return !bitBoardOperations::isKingCheck(bitBoard, color);
+			}
+		}
 		return false;
 	}
 };

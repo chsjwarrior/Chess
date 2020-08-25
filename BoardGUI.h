@@ -63,6 +63,7 @@ public:
 	}
 
 	void startNewGame(uChar playerColor) {
+		//bitBoardOperations::parseFEN(bitBoard, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 		bitBoardOperations::setInitialPosition(bitBoard);
 
 		selected = NONE_SQUARE;
@@ -124,14 +125,14 @@ public:
 			olc.DrawRect(lastMove.second, CELL_SIZE, olc::YELLOW);
 		}
 
-		for (uChar namePiece = 0; namePiece < 6; namePiece++)
+		for (uChar pieceType = 0; pieceType < 6; pieceType++)
 			for (uChar color = 0; color < 2; color++)
-				for (Bitmap bitmap = bitBoard.bitMaps[namePiece][color]; bitmap != 0; bitmap = bitBoardOperations::remainder(bitmap)) {
+				for (Bitmap bitmap = bitBoard.bitMaps[pieceType][color]; bitmap != 0; bitmap = bitBoardOperations::remainder(bitmap)) {
 					position.square = bitBoardOperations::getSquareOfBitmap(bitmap);
 					position.square = ~position.square;
 					point.x = positionToPoint(position.getFile());
 					point.y = positionToPoint(position.getRank());
-					piece.piece = bitBoardOperations::makePiece(static_cast<PieceType>(namePiece), static_cast<Color>(color));
+					piece.piece = bitBoardOperations::makePiece(static_cast<PieceType>(pieceType), static_cast<Color>(color));
 					olc::vu2d aux((piece.type() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6), 0);
 					olc.DrawPartialDecal(point, CELL_SIZE, pieces, aux, CELL_SIZE);
 				}
@@ -163,6 +164,13 @@ public:
 				bitBoardOperations::printBitmap("BitBoard:", bitBoardOperations::getBitmapAllPieces(bitBoard));
 				bitBoardOperations::printBitmap("Flags:", bitBoard.flags);
 				bitBoardOperations::printBitmap("Attacks:", bitBoard.attacks);
+								
+				std::cout << bitBoardOperations::isEnPassantCapture(bitBoard) << std::endl;
+				std::cout << bitBoardOperations::isPawnPromotion(bitBoard) << std::endl;
+				std::cout << bitBoardOperations::isSmallRook(bitBoard, WHITE) << std::endl;
+				std::cout << bitBoardOperations::isBigRook(bitBoard,WHITE) << std::endl;
+				std::cout << bitBoardOperations::isSmallRook(bitBoard, BLACK) << std::endl;
+				std::cout << bitBoardOperations::isBigRook(bitBoard, BLACK) << std::endl;
 			}
 		}
 		else {
