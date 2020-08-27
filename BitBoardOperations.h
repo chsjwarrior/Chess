@@ -172,17 +172,15 @@ namespace bitBoardOperations {
 		return hasIntersection(bitBoard.move.move, 0x2000000U);
 	}
 
-	const bool& isSmallRook(BitBoard& bitBoard, Color color) {
+	const bool isSmallRook(BitBoard& bitBoard, Color color) {
 		if (color == WHITE)
 			return hasIntersection(bitBoard.move.move >> 28, 0x1U);
-
 		return hasIntersection(bitBoard.move.move >> 28, 0x4U);
 	}
 
-	const bool& isBigRook(BitBoard& bitBoard, Color color) {
+	const bool isBigRook(BitBoard& bitBoard, Color color) {
 		if (color == WHITE)
 			return hasIntersection(bitBoard.move.move >> 28, 0x2U);
-
 		return hasIntersection(bitBoard.move.move >> 28, 0x8U);
 	}
 

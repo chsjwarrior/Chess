@@ -9,7 +9,7 @@ private:
 
 	void setCapture(BitBoard& bitBoard) {
 		Piece piece = bitBoardOperations::getPieceFromSquare(bitBoard, destiny);
-		bitBoard.move.move = bitBoardOperations::getUnion(bitBoard.move.move, piece << 16);
+		bitBoard.move.move = bitBoard.move.move | piece << 16;
 		if (piece != NONE_PIECE)
 			bitBoardOperations::unsetPieceOnSquare(bitBoard, bitBoardOperations::getPieceTypeOfPiece(piece), bitBoardOperations::getColorOfPiece(piece), destiny);
 	}
@@ -36,7 +36,7 @@ private:
 
 				if (enPassantCapture) {
 					bitBoardOperations::unsetPieceOnSquare(bitBoard, pieceType, ~color, bitBoardOperations::getSquareOfBitmap(enPassant));
-					bitBoard.move.move = bitBoardOperations::getUnion(bitBoard.move.move, 0x1000000U);
+					bitBoard.move.move = bitBoard.move.move | 0x1000000U;
 				}
 			}
 		}
@@ -57,7 +57,7 @@ private:
 	void setPawnPromotion(BitBoard& bitBoard, PieceType pieceType, Color color, Bitmap destiny) {
 		if (pieceType == PAWN)
 			if (bitBoardOperations::hasIntersection(destiny, PAWN_PROMOTION_RANK[color]))
-				bitBoard.move.move = bitBoardOperations::getUnion(bitBoard.move.move, 0x2000000U);
+				bitBoard.move.move = bitBoard.move.move | 0x2000000U;
 	}
 
 	//Este método verifica se o rei vai mover duas casas para um lado e efetuar o movimento do roque
@@ -72,7 +72,7 @@ private:
 				square = bitBoardOperations::getSquareOfBitmap(kingBitmap << 1);
 				bitBoardOperations::setPieceOnSquare(bitBoard, ROOK, color, square);
 
-				bitBoard.move.move = bitBoardOperations::getUnion(bitBoard.move.move, (0x1U + color) << 28);
+				bitBoard.move.move = bitBoard.move.move | (0x1U + (uChar)color) << 28;
 			}
 		}
 	}
@@ -89,7 +89,7 @@ private:
 				square = bitBoardOperations::getSquareOfBitmap(kingBitmap >> 1);
 				bitBoardOperations::setPieceOnSquare(bitBoard, ROOK, color, square);
 
-				bitBoard.move.move = bitBoardOperations::getUnion(bitBoard.move.move, 0x4U << 28);
+				bitBoard.move.move = bitBoard.move.move | 0x4U << 28;
 			}
 		}
 	}

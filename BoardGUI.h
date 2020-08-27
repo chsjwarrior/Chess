@@ -2,6 +2,7 @@
 #include "GameBehavior.h"
 #include "BitBoardOperations.h"
 #include "MoveGenerator.h"
+#include "AlphaBetaPruning.h"
 
 class BoardGUI : public GameBehavior {
 private:
@@ -9,30 +10,35 @@ private:
 	const uint32_t BORDER_SIZE = 25;
 	const uint32_t BOARD_SIZE = 8 * 55;
 
-	int boardLayer;
-
-	olc::Decal* pieces;
-
 	struct SPiece {
 		Piece piece;
+		SPiece() : piece(NONE_PIECE) {}
 		const PieceType type() const { return bitBoardOperations::getPieceTypeOfPiece(piece); }
 		const Color color() const { return bitBoardOperations::getColorOfPiece(piece); }
 	} piece;
 
 	struct Position {
 		Square square;
+		Position() : square(NONE_SQUARE) {}
 		const File getFile() const { return bitBoardOperations::getFileOfSquare(square); }
 		const Rank getRank() const { return bitBoardOperations::getRankOfSquare(square); }
 	} position;
 
 	BitBoard bitBoard;
 
-	Square selected;
+	int boardLayer;
+
+	olc::Decal* pieces;
+
+	AlphaBetaPruning* ia;
+
+	Color playerColor, iaColor;
+
+	Position dragSquare;
 
 	std::pair<olc::vf2d, olc::vf2d> lastMove;
 
 	std::pair<olc::vf2d, Piece> movePiece;
-
 	//0======================================================================0
 	inline const bool isMouseInsideBoard(const olc::vu2d& point) const {
 		return point.x >= BORDER_SIZE && point.x < BOARD_SIZE + BORDER_SIZE &&
@@ -47,30 +53,45 @@ private:
 		return value * CELL_SIZE.x + BORDER_SIZE;
 	}
 
-	inline const bool isColorTime(const uChar& pieceColor) const {
-		return (bitBoard.whiteTime && pieceColor == WHITE) || (!bitBoard.whiteTime && pieceColor == BLACK);
+	inline const bool isColorTime(const Color& color) const {
+		return (bitBoard.whiteTime && color == WHITE) || (!bitBoard.whiteTime && color == BLACK);
 	}
 	//0======================================================================0
 public:
-	BoardGUI() : GameBehavior(), boardLayer(NULL), pieces(nullptr), selected(NONE_SQUARE) {
-		piece.piece = NONE_PIECE;
-		position.square = NONE_SQUARE;
-	}
+	BoardGUI() :
+		GameBehavior(),
+		piece(),
+		position(),
+		bitBoard(),
+		boardLayer(NULL),
+		pieces(nullptr),
+		ia(nullptr),
+		playerColor(BLACK),
+		iaColor(BLACK),
+		dragSquare(),
+		lastMove(olc::vf2d(), olc::vf2d()),
+		movePiece(olc::vf2d(), NONE_PIECE) {}
 	~BoardGUI() {
 		if (pieces != nullptr)
 			delete pieces;
 		pieces = nullptr;
+		if (ia != nullptr)
+			delete ia;
+		ia = nullptr;
 	}
 
-	void startNewGame(uChar playerColor) {
+	void startNewGame(Color playerColor) {
 		//bitBoardOperations::parseFEN(bitBoard, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		piece.piece = NONE_PIECE;
+		position.square = NONE_SQUARE;
 		bitBoardOperations::setInitialPosition(bitBoard);
-
-		selected = NONE_SQUARE;
-
-		lastMove.first = olc::vu2d();
-		lastMove.second = olc::vu2d();
-		movePiece.first = olc::vu2d();
+		this->playerColor = playerColor;
+		iaColor = ~playerColor;
+		dragSquare.square = NONE_SQUARE;
+		lastMove.first.x = 0;
+		lastMove.first.y = 0;
+		lastMove.second.x = 0;
+		lastMove.second.y = 0;
 		movePiece.second = NONE_PIECE;
 	}
 
@@ -113,37 +134,6 @@ public:
 
 	bool OnUserUpdate(olc::PixelGameEngine& olc, float elapsedTime) override {
 		olc::vu2d point;
-		if (selected != NONE_SQUARE) {
-			position.square = selected;
-			point.x = positionToPoint(position.getFile());
-			point.y = positionToPoint(position.getRank());
-			olc.FillRect(point, CELL_SIZE, olc::YELLOW);
-		}
-
-		if (lastMove.first.x != lastMove.second.x || lastMove.first.y != lastMove.second.y) {
-			olc.DrawRect(lastMove.first, CELL_SIZE, olc::YELLOW);
-			olc.DrawRect(lastMove.second, CELL_SIZE, olc::YELLOW);
-		}
-
-		for (uChar pieceType = 0; pieceType < 6; pieceType++)
-			for (uChar color = 0; color < 2; color++)
-				for (Bitmap bitmap = bitBoard.bitMaps[pieceType][color]; bitmap != 0; bitmap = bitBoardOperations::remainder(bitmap)) {
-					position.square = bitBoardOperations::getSquareOfBitmap(bitmap);
-					position.square = ~position.square;
-					point.x = positionToPoint(position.getFile());
-					point.y = positionToPoint(position.getRank());
-					piece.piece = bitBoardOperations::makePiece(static_cast<PieceType>(pieceType), static_cast<Color>(color));
-					olc::vu2d aux((piece.type() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6), 0);
-					olc.DrawPartialDecal(point, CELL_SIZE, pieces, aux, CELL_SIZE);
-				}
-
-		for (Bitmap attacks = bitBoard.attacks; attacks != 0; attacks = bitBoardOperations::remainder(attacks)) {
-			position.square = bitBoardOperations::getSquareOfBitmap(attacks);
-			position.square = ~position.square;
-			point.x = positionToPoint(position.getFile());
-			point.y = positionToPoint(position.getRank());
-			olc.FillCircle(point.x + 26, point.y + 26, CELL_SIZE.x / 5, olc::YELLOW);
-		}
 
 		if (movePiece.second != NONE_PIECE) {
 			piece.piece = movePiece.second;
@@ -164,16 +154,11 @@ public:
 				bitBoardOperations::printBitmap("BitBoard:", bitBoardOperations::getBitmapAllPieces(bitBoard));
 				bitBoardOperations::printBitmap("Flags:", bitBoard.flags);
 				bitBoardOperations::printBitmap("Attacks:", bitBoard.attacks);
-								
-				std::cout << bitBoardOperations::isEnPassantCapture(bitBoard) << std::endl;
-				std::cout << bitBoardOperations::isPawnPromotion(bitBoard) << std::endl;
-				std::cout << bitBoardOperations::isSmallRook(bitBoard, WHITE) << std::endl;
-				std::cout << bitBoardOperations::isBigRook(bitBoard,WHITE) << std::endl;
-				std::cout << bitBoardOperations::isSmallRook(bitBoard, BLACK) << std::endl;
-				std::cout << bitBoardOperations::isBigRook(bitBoard, BLACK) << std::endl;
+
+				bitBoard.whiteTime = !bitBoard.whiteTime;
 			}
 		}
-		else {
+		else if (isColorTime(playerColor)) {
 			point.x = olc.GetMouseX();
 			point.y = olc.GetMouseY();
 			if (isMouseInsideBoard(point)) {
@@ -184,39 +169,96 @@ public:
 				point.y = positionToPoint(point.y);
 				olc.DrawRect(point, CELL_SIZE, olc::YELLOW);
 
+				position.square = ~position.square;
 				if (olc.GetMouse(0).bPressed) {
-					position.square = ~position.square;
-					if (selected == NONE_SQUARE) {
+					if (dragSquare.square == NONE_SQUARE) {
 						piece.piece = bitBoardOperations::getPieceFromSquare(bitBoard, position.square);
-						if (piece.piece != NONE_PIECE) {
+						if (piece.piece != NONE_PIECE && isColorTime(piece.color())) {
 							MoveGenerator moveGenerator;
 							if (moveGenerator.hasPossibleMoves(bitBoard, piece.type(), piece.color(), position.square))
-								selected = ~position.square;
+								dragSquare.square = ~position.square;
 						}
 					}
-					else if (bitBoardOperations::isSquareAttacked(bitBoard, position.square)) {
-						lastMove.first.x = positionToPoint(bitBoardOperations::getFileOfSquare(selected));
-						lastMove.first.y = positionToPoint(bitBoardOperations::getRankOfSquare(selected));
-						position.square = ~position.square;
-						lastMove.second.x = positionToPoint(position.getFile());
-						lastMove.second.y = positionToPoint(position.getRank());
+				}
+				else if (olc.GetMouse(0).bReleased) {
+					if (dragSquare.square != NONE_SQUARE) {
+						if (bitBoardOperations::isSquareAttacked(bitBoard, position.square)) {
+							lastMove.first.x = positionToPoint(bitBoardOperations::getFileOfSquare(dragSquare.square));
+							lastMove.first.y = positionToPoint((uint32_t)bitBoardOperations::getRankOfSquare(dragSquare.square));
+							position.square = ~position.square;
+							lastMove.second.x = positionToPoint(position.getFile());
+							lastMove.second.y = positionToPoint(position.getRank());
 
-						selected = ~selected;
-						movePiece.first = lastMove.first;
-						movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, selected);
+							dragSquare.square = ~dragSquare.square;
+							movePiece.first = lastMove.first;
+							movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, dragSquare.square);
 
-						MoveMaker moveMaker(selected, ~position.square);
-						moveMaker.makeMove(bitBoard);
-
-						selected = NONE_SQUARE;
+							MoveMaker moveMaker(dragSquare.square, ~position.square);
+							moveMaker.makeMove(bitBoard);
+						}
+						dragSquare.square = NONE_SQUARE;
 						bitBoard.attacks = 0;
 					}
 				}
-				else if (olc.GetMouse(1).bPressed) {
-					selected = NONE_SQUARE;
-					bitBoard.attacks = 0;
-				}
 			}
+		}
+		else if (isColorTime(iaColor)) {
+			if (ia == nullptr) {
+				ia = new AlphaBetaPruning(iaColor, 5);
+				ia->search(bitBoard);
+			}
+			else if (ia->isRunning() == false) {
+				std::cout << "Nodes: " << ia->getNodes() << std::endl;
+
+				Square origin = bitBoardOperations::getMoveFrom(bitBoard);
+				Square destiny = bitBoardOperations::getMoveTo(bitBoard);
+
+				lastMove.first.x = positionToPoint(bitBoardOperations::getFileOfSquare(~origin));
+				lastMove.first.y = positionToPoint(bitBoardOperations::getRankOfSquare(~origin));
+				lastMove.second.x = positionToPoint(bitBoardOperations::getFileOfSquare(~destiny));
+				lastMove.second.y = positionToPoint(bitBoardOperations::getRankOfSquare(~destiny));
+
+				movePiece.first = lastMove.first;
+				movePiece.second = bitBoardOperations::getPieceFromSquare(bitBoard, origin);
+
+				MoveMaker moveMaker(origin, destiny);
+				moveMaker.makeMove(bitBoard);
+				bitBoard.attacks = 0;
+
+				delete ia;
+				ia = nullptr;
+			}
+		}
+		//draw last move
+		if (lastMove.first.x != lastMove.second.x || lastMove.first.y != lastMove.second.y) {
+			olc.DrawRect(lastMove.first, CELL_SIZE, olc::YELLOW);
+			olc.DrawRect(lastMove.second, CELL_SIZE, olc::YELLOW);
+		}
+		//draw pieces on board
+		for (uChar pieceType = 0; pieceType < 6; pieceType++)
+			for (uChar color = 0; color < 2; color++)
+				for (Bitmap bitmap = bitBoard.bitMaps[pieceType][color]; bitmap != 0; bitmap = bitBoardOperations::remainder(bitmap)) {
+					position.square = bitBoardOperations::getSquareOfBitmap(bitmap);
+					position.square = ~position.square;
+					if (position.square == dragSquare.square) {
+						point.x = olc.GetMouseX() - 25;
+						point.y = olc.GetMouseY() - 25;
+					}
+					else {
+						point.x = positionToPoint(position.getFile());
+						point.y = positionToPoint(position.getRank());
+					}
+					piece.piece = bitBoardOperations::makePiece(static_cast<PieceType>(pieceType), static_cast<Color>(color));
+					olc::vu2d aux((piece.type() * CELL_SIZE.x) + (piece.color() * CELL_SIZE.y * 6), 0);
+					olc.DrawPartialDecal(point, CELL_SIZE, pieces, aux, CELL_SIZE);
+				}
+		//draw attacks
+		for (Bitmap attacks = bitBoard.attacks; attacks != 0; attacks = bitBoardOperations::remainder(attacks)) {
+			position.square = bitBoardOperations::getSquareOfBitmap(attacks);
+			position.square = ~position.square;
+			point.x = positionToPoint(position.getFile());
+			point.y = positionToPoint(position.getRank());
+			olc.FillCircle(point.x + 26, point.y + 26, CELL_SIZE.x / 5, olc::YELLOW);
 		}
 		return true;
 	}

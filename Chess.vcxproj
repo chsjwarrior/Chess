@@ -155,7 +155,7 @@
   <ItemGroup>
     <ClInclude Include="PiecesMove.h" />
     <ClInclude Include="History.h" />
-    <ClInclude Include="MinMax.h" />
+    <ClInclude Include="AlphaBetaPruning.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="BitBoardOperations.h" />
     <ClInclude Include="BoardGUI.h" />
